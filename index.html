@@ -627,6 +627,20 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
 .board-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 5vw;background:#111}
 .board-bar button,.board-bar select{font:inherit;padding:6px 12px}
 .board-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+
+/* objectives and case files */
+.s-objectives{position:absolute;inset:120px 110px 80px}
+.s-objectives .s-paper{position:relative;padding:50px 60px;transform:rotate(-.6deg)}
+.s-obj-list{margin:20px 0 0;padding-left:56px;font-size:38px;line-height:1.5}
+.s-obj-list li{margin-bottom:12px}
+.paper.objectives ul{margin:.3rem 0 0;padding-left:1.2rem}
+.file-btns{display:flex;flex-wrap:wrap;gap:10px}
+.file-btn{display:inline-flex;align-items:center;gap:10px;font:inherit;font-weight:700;padding:10px 14px;border:2px solid #1A1A1A;background:#FBFAF6;box-shadow:3px 3px 0 #1A1A1A;cursor:pointer;min-height:44px;text-align:left}
+.file-ico{display:inline-block;font-family:'Special Elite',monospace;font-size:.8rem;background:#B3170F;color:#FFF;padding:3px 6px}
+.file-list{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:6px}
+.file-list li{display:flex;align-items:center;gap:10px;background:#FBFAF6;border:1px solid #CFC6B3;padding:6px 10px}
+.file-list li b{flex:1}
+[hidden]{display:none !important}
 </style>
 </head>
 <body>
@@ -990,10 +1004,11 @@ const SLIDE_TYPES = {
   investigate: { label: 'Investigate', phase: 'investigate', dark: false, minutes: 20 },
   debrief:     { label: 'Debrief', phase: 'debrief', dark: false, minutes: 10 },
   capture:     { label: 'Capture', phase: 'capture', dark: true, minutes: 5 },
+  objectives:  { label: 'Mission objectives', phase: null, dark: false },
   lock:        { label: 'Padlock', phase: 'investigate', dark: false },
   twist:       { label: 'Plot twist', phase: null, dark: true },
 };
-const ADDABLE = ['lock', 'twist', 'intel', 'picture', 'video', 'question', 'check', 'timer', 'hook', 'investigate', 'debrief', 'title'];
+const ADDABLE = ['lock', 'twist', 'objectives', 'intel', 'picture', 'video', 'question', 'check', 'timer', 'hook', 'investigate', 'debrief', 'title'];
 const LAYOUTS = [['pin', 'Pinned photo'], ['half', 'Half and half'], ['bg', 'Full background'], ['sticker', 'Corner sticker']];
 
 function newSlide(type, c = {}) {
@@ -1010,6 +1025,7 @@ function newSlide(type, c = {}) {
   if (type === 'debrief') { s.heading = 'What did your crew discover?'; s.text = 'Spokespeople, report in.'; s.minutes = 10; }
   if (type === 'capture') { s.heading = 'File your case notes'; s.minutes = 5; }
   if (type === 'lock') { s.heading = 'The first lock'; s.text = 'What crews need to work out to find the code.'; s.reward = 'What opens when they crack it.'; s.hint = ''; s.codeLen = 0; }
+  if (type === 'objectives') { s.heading = 'By the end of this case you can:'; }
   if (type === 'twist') { s.heading = 'Plot twist'; s.text = 'For the next 2 minutes, only one person in each crew may speak.'; }
   return s;
 }
@@ -1086,6 +1102,7 @@ function slideTags(slides) {
       case 'timer': return 'CREW TIME';
       case 'lock': return of > 1 ? `PADLOCK ${n} OF ${of}` : 'PADLOCK';
       case 'twist': return 'BREAKING';
+      case 'objectives': return 'MISSION OBJECTIVES';
       default: return '';
     }
   });
@@ -1225,6 +1242,12 @@ function renderSlide(s, c, opts = {}) {
             ${!open && opts.mode === 'present' ? '<p class="s-hint">Crews enter the code on their device. Press Next to open the lock.</p>' : ''}
           </div></div>
         ${open ? '<span class="s-stamp cracked">CRACKED</span>' : ''}${img.html && img.layout === 'sticker' ? img.html : ''}`;
+      break;
+    }
+    case 'objectives': {
+      const list = (Array.isArray(c.intentions) ? c.intentions : []).filter(Boolean);
+      inner = `${tagHtml}<div class="s-objectives"><div class="s-paper"><span class="s-pin"></span><h1 class="s-h2">${esc(s.heading || 'By the end of this case you can:')}</h1>
+        ${list.length ? `<ol class="s-obj-list">${list.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : '<p class="s-empty">Add learning intentions in “The case” section of the builder.</p>'}</div></div>`;
       break;
     }
     case 'twist':
@@ -1807,8 +1830,10 @@ async function studentCase(id) {
         ${c.message ? `<p class="case-msg">${esc(c.message)}</p>` : ''}
         ${c.element ? `<p class="element">${esc(c.element)}</p>` : ''}
       </section>
+      ${Array.isArray(c.intentions) && c.intentions.length ? `<section class="paper objectives"><p class="eyebrow">MISSION OBJECTIVES</p><p>By the end of this case you can:</p><ul>${c.intentions.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section>` : ''}
       ${verdict}
       ${crewHtml}
+      ${Array.isArray(c.files) && c.files.some((f) => isT || !f.teacher) ? `<section class="paper case-files"><p class="eyebrow">CASE FILES</p><div class="file-btns">${c.files.map((f, i) => (!isT && f.teacher ? '' : `<button type="button" class="file-btn" data-file="${i}"><span class="file-ico">${esc(extOf(f.name).toUpperCase() || 'FILE')}</span>${esc(f.name)}${f.teacher ? ' <span class="chip">teacher only</span>' : ''}</button>`)).join('')}</div></section>` : ''}
       <nav class="phase-nav" aria-label="Case progress">
         ${phases.map(([k, l], i) => `<a href="#ph-${k}" data-phase="${k}"><b>${i + 1}</b> ${l}</a>`).join('')}
       </nav>
@@ -1852,6 +1877,16 @@ async function studentCase(id) {
         }
       });
     });
+    // case files: private, so each download gets a short-lived link
+    $$('[data-file]').forEach((btn) => btn.addEventListener('click', async () => {
+      const f = c.files[Number(btn.dataset.file)];
+      if (!f) return;
+      if (f.url) { window.open(f.url, '_blank', 'noopener'); return; }
+      const w = window.open('', '_blank');
+      const { data, error } = await sb.storage.from('resources').createSignedUrl(f.path, 600);
+      if (error || !data?.signedUrl) { w?.close(); return toast('That file couldn’t be opened. Tell your teacher.', 'warn'); }
+      if (w) w.location = data.signedUrl; else location.href = data.signedUrl;
+    }));
     // padlocks
     const wireLocks = () => {
       $$('[data-lockform]').forEach((f) => f.addEventListener('submit', async (e) => {
@@ -2288,9 +2323,9 @@ async function caseBuilder(id, extra) {
       c = {
         title: 'New case', brief: '', element: null, xp: 50, active: false, steps: [], prompts: DEFAULT_PROMPTS,
         week: Math.min(50, (all?.[0]?.week || 1) + 1), boss: false, district: Number(extra) || 1, location: '', message: '',
-        closed_msg: 'Case closed, detective.', reopen_msg: 'Nearly there. Have another look and re-file.', capture_ask: '', slides: [],
+        closed_msg: 'Case closed, detective.', reopen_msg: 'Nearly there. Have another look and re-file.', capture_ask: '', slides: [], intentions: [], files: [],
       };
-      c.slides = [newSlide('title', c), newSlide('hook', c), newSlide('intel', c), newSlide('check', c), newSlide('investigate', c), newSlide('debrief', c), newSlide('capture', c)];
+      c.slides = [newSlide('title', c), newSlide('objectives', c), newSlide('hook', c), newSlide('intel', c), newSlide('check', c), newSlide('investigate', c), newSlide('debrief', c), newSlide('capture', c)];
     } else {
       const { data, error } = await sb.from('challenges').select('*').eq('id', id).maybeSingle();
       if (error) throw error;
@@ -2345,6 +2380,8 @@ function buildEditor(c, waiting) {
           <label class="span2">Competency element <span class="muted">(optional)</span>
             <input id="f-element" list="elements" maxlength="80" value="${esc(c.element || '')}" placeholder="Start typing…">
             <datalist id="elements">${ELEMENT_SUGGESTIONS.map((e) => `<option value="${esc(e)}">`).join('')}</datalist></label>
+          <label class="span2">Learning intentions <span class="muted">· one per line. Shown at the top of the case and on the Mission objectives slide.</span>
+            <textarea id="f-intentions" rows="3" maxlength="1500" placeholder="Recognise the elements of an effective study space&#10;Identify changes to make to my own study space">${esc((c.intentions || []).join('\n'))}</textarea></label>
           <label class="check"><input type="checkbox" id="f-boss" ${c.boss ? 'checked' : ''}> Boss case (end of district)</label>
         </div>
       </section>
@@ -2356,6 +2393,13 @@ function buildEditor(c, waiting) {
       </section>
 
       <section class="paper b-card b-editor" id="editor"></section>
+
+      <section class="paper b-card">
+        <p class="b-sec">Case files <span class="muted">· worksheets, readings and clue kits. Girls download them from the case page. Private to logged-in users.</span></p>
+        <div id="files-list"></div>
+        <input type="file" id="file-input" class="sr" accept=".pdf,.docx,.pptx,image/*" multiple>
+        <label for="file-input" class="dropzone small"><b>+ Add files</b><span class="muted small">PDF, Word, PowerPoint or images · up to 10 MB each</span></label>
+      </section>
 
       <section class="paper b-card">
         <p class="b-sec">Capture and closing</p>
@@ -2384,6 +2428,41 @@ function buildEditor(c, waiting) {
   $('#f-boss').addEventListener('change', (e) => { c.boss = e.target.checked; markDirty(); paintStrip(); paintPreview(); });
   $('#f-active').addEventListener('change', (e) => { c.active = e.target.checked; $('#f-active + span').textContent = c.active ? 'Open to students' : 'Draft (hidden)'; markDirty(); });
   $('#f-prompts').addEventListener('input', (e) => { c.prompts = e.target.value.split('\n').map((p) => p.trim()).filter(Boolean).slice(0, 8); markDirty(); paintStrip(); paintPreview(); });
+  $('#f-intentions').addEventListener('input', (e) => { c.intentions = e.target.value.split('\n').map((p) => p.trim().slice(0, 200)).filter(Boolean).slice(0, 6); markDirty(); paintPreview(); });
+  c.files = Array.isArray(c.files) ? c.files : [];
+  const paintFiles = () => {
+    $('#files-list').innerHTML = c.files.length
+      ? `<ul class="file-list">${c.files.map((f, i) => `<li><span class="file-ico">${esc(extOf(f.name).toUpperCase() || 'FILE')}</span><b>${esc(f.name)}</b>
+          <label class="check small"><input type="checkbox" data-fteach="${i}" ${f.teacher ? 'checked' : ''}> Teacher only</label>
+          <button type="button" class="link-btn" data-fup="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Move up">↑</button>
+          <button type="button" class="link-btn danger" data-fdel="${i}">Remove</button></li>`).join('')}</ul>`
+      : '<p class="muted small">No files yet.</p>';
+  };
+  paintFiles();
+  $('#files-list').addEventListener('click', (e) => {
+    const d = e.target.closest('[data-fdel]'); const u = e.target.closest('[data-fup]');
+    if (d) { c.files.splice(Number(d.dataset.fdel), 1); markDirty(); paintFiles(); }
+    if (u) { const i = Number(u.dataset.fup); [c.files[i - 1], c.files[i]] = [c.files[i], c.files[i - 1]]; markDirty(); paintFiles(); }
+  });
+  $('#files-list').addEventListener('change', (e) => {
+    const cb = e.target.closest('[data-fteach]');
+    if (cb) { c.files[Number(cb.dataset.fteach)].teacher = cb.checked; markDirty(); }
+  });
+  $('#file-input').addEventListener('change', async (e) => {
+    for (const file of [...e.target.files]) {
+      if (c.files.length >= 10) { toast('Ten files is the limit for one case.', 'warn'); break; }
+      if (file.size > 10 * 1024 * 1024) { toast(`${file.name} is over 10 MB.`, 'warn'); continue; }
+      const safe = file.name.replace(/[^\w.\- ]+/g, '').slice(-80) || 'file';
+      const path = `${me.id}/${uid()}-${safe}`;
+      toast(`Uploading ${file.name}…`);
+      const { error } = await sb.storage.from('resources').upload(path, file, { contentType: file.type || mimeFor(file) });
+      if (error) { toast(friendlyError(error), 'warn'); continue; }
+      c.files.push({ name: file.name.slice(0, 80), path });
+      markDirty(); paintFiles();
+    }
+    e.target.value = '';
+    toast('Files added. Remember to save.');
+  });
   $('#f-steps').addEventListener('input', (e) => { c.steps = e.target.value.split('\n').map((p) => p.trim().slice(0, 300)).filter(Boolean).slice(0, 12); markDirty(); });
 
   // ----- slide strip -----
@@ -2719,6 +2798,7 @@ function buildEditor(c, waiting) {
       note: c.note || null, district: c.district || 1, location: (c.location || '').trim() || null, message: (c.message || '').trim() || null,
       slides: publicSlides, closed_msg: (c.closed_msg || '').trim() || null, reopen_msg: (c.reopen_msg || '').trim() || null,
       capture_ask: (c.capture_ask || '').trim() || null, active: !!c.active,
+      intentions: c.intentions || [], files: c.files || [],
     };
     $$('#save, #save2').forEach((b) => { b.disabled = true; b.textContent = 'Saving…'; });
     const res = c.id
