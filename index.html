@@ -744,7 +744,7 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
   </main>
   <div id="overlay" class="overlay" hidden></div>
   <div id="toast" class="toast" role="status" hidden></div>
-  <div id="build" class="build-tag">Version 10 Nov 21:19</div>
+  <div id="build" class="build-tag">Version 10 Nov 21:22</div>
   <noscript>Thrive City Case Files needs JavaScript turned on.</noscript>
   <script type="module">
 // ===== core.js =====
@@ -1047,6 +1047,7 @@ async function enterStudentView(id, keepPage) {
   if (location.hash === target) route(); else location.hash = target;
 }
 document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-viewonly]')) { toast('This is her Edit/Delete button. It’s switched off in Student view so you can’t change her work. Log in as the student to try it.', 'warn'); return; }
   const b = e.target.closest('[data-viewas]');
   if (b) { e.preventDefault(); enterStudentView(b.dataset.viewas); }
 });
@@ -2200,7 +2201,7 @@ async function studentCase(id, extra) {
         <p class="eyebrow">MY CASE NOTES</p>
         ${prompts.map((p, i) => `<h3 class="q">${esc(p)}</h3><p class="a">${esc(sub.answers?.[i] || '')}</p>`).join('')}
         <p class="muted">${sub.status === 'approved' ? 'Case closed.' : 'Filed. Waiting for your teacher to read it.'}</p>
-        ${me.viewing ? `<div class="entry-actions preview" title="Switched off in Student view"><span class="muted small">She sees:</span><span class="stamp-btn small" aria-disabled="true">Edit my case file</span><span class="link-btn danger" aria-disabled="true">Delete this entry</span></div>` : `<div class="entry-actions"><button type="button" class="stamp-btn small" id="cap-edit">Edit my case file</button>
+        ${me.viewing ? `<div class="entry-actions"><button type="button" class="stamp-btn small" data-viewonly>Edit my case file</button><button type="button" class="link-btn danger" data-viewonly>Delete this entry</button></div>` : `<div class="entry-actions"><button type="button" class="stamp-btn small" id="cap-edit">Edit my case file</button>
           <button type="button" class="link-btn danger" id="cap-del">Delete this entry</button></div>`}</section>`;
       $('#cap-edit')?.addEventListener('click', () => captureForm(c, sub, prompts, urls, readOnly));
       $('#cap-del')?.addEventListener('click', () => deleteEntry(sub, c));
@@ -2416,7 +2417,7 @@ async function studentPortfolio(studentId) {
                   </div>
                 </div>
                 ${isT && s.student_edited_at ? `<p class="edited-flag">✎ ${esc(who.display_name)} edited this on ${fmtDate(s.student_edited_at)}, after it was closed.</p>` : ''}
-                ${!isT ? (me.viewing ? `<div class="entry-actions preview" title="Students can use these. They're switched off in Student view so you can't change her work."><span class="muted small">She sees:</span><span class="stamp-btn small ghost" aria-disabled="true">Edit</span><span class="link-btn danger" aria-disabled="true">Delete</span></div>`
+                ${!isT ? (me.viewing ? `<div class="entry-actions"><button type="button" class="stamp-btn small ghost" data-viewonly>Edit</button><button type="button" class="link-btn danger" data-viewonly>Delete</button></div>`
                   : `<div class="entry-actions"><a class="stamp-btn small ghost" href="#/case/${s.challenge_id}/edit">Edit</a>
                   <button type="button" class="link-btn danger" data-del="${s.id}">Delete</button></div>`) : ''}
               </article>`;
