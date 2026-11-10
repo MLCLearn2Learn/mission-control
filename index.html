@@ -666,6 +666,7 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
 .polaroid[data-view]::after { content: "⤢ View"; position: absolute; right: 14px; top: 14px; font: 700 12px/1 var(--mono, 'Courier Prime', monospace); background: rgba(26,26,26,.78); color: #fff; padding: 5px 7px; opacity: .85; }
 .polaroid[data-view]:hover::after, .polaroid[data-view]:focus-visible::after { opacity: 1; background: #B3170F; }
 @media (max-width: 700px) { .polaroid { width: 46%; } .case-file .file-body .evidence-board { width: 100%; } }
+.build-tag{position:fixed;right:8px;bottom:6px;font:11px/1 "Courier Prime",monospace;color:rgba(26,26,26,.55);background:rgba(244,239,230,.7);padding:3px 6px;z-index:5;pointer-events:none}body.presenting .build-tag{display:none}
 </style>
 </head>
 <body>
@@ -674,6 +675,7 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
   </main>
   <div id="overlay" class="overlay" hidden></div>
   <div id="toast" class="toast" role="status" hidden></div>
+  <div id="build" class="build-tag">Version 10 Nov 20:36</div>
   <noscript>Thrive City Case Files needs JavaScript turned on.</noscript>
   <script type="module">
 // ===== core.js =====
