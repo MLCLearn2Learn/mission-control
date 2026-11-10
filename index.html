@@ -558,6 +558,33 @@ button.s-opt:hover { background: var(--memo); }
 /* AI feedback drafts (teacher only) */
 .draft-note{margin:4px 0 6px;padding:8px 12px;background:#EEF3FF;border-left:4px solid #4A63B8;font-size:.9rem;line-height:1.4}
 textarea.is-draft{background:#F7F9FF;border-style:dashed}
+
+/* ---------- padlocks and twist cards ---------- */
+.s-lock{position:absolute;inset:110px 90px 70px;display:flex;gap:60px;align-items:flex-start}
+.s-lock-icon svg{width:190px;height:220px;filter:drop-shadow(0 10px 18px rgba(60,35,10,.35))}
+.s-lock-main{flex:1;background:var(--paper,#F4EFE6);padding:40px 48px;box-shadow:0 16px 34px rgba(60,35,10,.35);transform:rotate(-.6deg)}
+.s-lock-main .s-rich{font-size:34px;line-height:1.4}
+.s-code{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.s-code span{width:58px;height:74px;border:4px solid #1A1A1A;background:#FBFAF6;font-family:'Special Elite',monospace;font-size:48px;display:flex;align-items:center;justify-content:center}
+.s-lock.open .s-code span{border-color:#2F6B3A;color:#2F6B3A}
+.s-reward{margin-top:24px;background:#FFF6C9;padding:18px 24px;font-size:30px;line-height:1.35;border-left:10px solid #2F6B3A}
+.s-reward b{display:block;font-family:'Special Elite',monospace;color:#2F6B3A;letter-spacing:.12em;font-size:26px;margin-bottom:4px}
+.s-stamp.cracked{color:#2F6B3A;border-color:#2F6B3A}
+.slide.s-twist{background:#B3170F !important}
+.s-twist{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 140px;color:#FFF}
+.s-twist-kicker{margin:0;font-family:'Courier Prime',monospace;font-weight:700;letter-spacing:.45em;font-size:30px}
+.s-twist h1{margin:10px 0 24px;font-family:'Special Elite',monospace;font-weight:400;font-size:150px;line-height:1;transform:rotate(-2deg)}
+.s-twist .s-rich{font-size:44px;line-height:1.35}
+.lock-wrap{margin-bottom:22px}
+.lock-form{background:var(--paper,#F4EFE6);padding:16px 18px;margin-top:10px;box-shadow:0 6px 14px rgba(60,35,10,.25)}
+.lock-form label{display:block;font-weight:700;margin-bottom:6px}
+.lock-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.code-in{font-family:'Special Elite',monospace;font-size:28px;letter-spacing:.2em;text-transform:uppercase;padding:8px 12px;border:3px solid #1A1A1A;background:#FBFAF6;min-width:0;flex:1 1 220px}
+.lock-msg{margin:8px 0 0}
+.hint-box{display:inline-block;background:#FFF6C9;padding:6px 10px}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}}
 </style>
 </head>
 <body>
@@ -888,6 +915,15 @@ function errorPage(active, err) {
   <button class="stamp-btn" onclick="location.reload()">Try again</button></section>`);
 }
 
+// ---------- padlock codes ----------------------------------------------------
+// Codes are compared without spaces, punctuation or capitals. Students only ever
+// get a scrambled (SHA-256) version, salted with the slide's own random id.
+const normCode = (v) => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+async function codeHash(slideId, code) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${slideId}:${normCode(code)}`));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 // ===== graphics.js =====
 // Case graphics bank: original drawings, 160x160 viewBox
 const GRAPHICS = {"case-closed": {"n": "Case closed", "s": "<g transform=\"rotate(-8 80 80)\"><rect x=\"5.0\" y=\"55\" width=\"150\" height=\"50\" fill=\"none\" stroke=\"#2F6B3A\" stroke-width=\"6\"/><rect x=\"11.0\" y=\"61\" width=\"138\" height=\"38\" fill=\"none\" stroke=\"#2F6B3A\" stroke-width=\"2\"/><text x=\"80\" y=\"87\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"19\" fill=\"#2F6B3A\">CASE CLOSED</text></g>"}, "top-secret": {"n": "Top secret", "s": "<g transform=\"rotate(-8 80 80)\"><rect x=\"5.0\" y=\"55\" width=\"150\" height=\"50\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"6\"/><rect x=\"11.0\" y=\"61\" width=\"138\" height=\"38\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"2\"/><text x=\"80\" y=\"87\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"19\" fill=\"#B3170F\">TOP SECRET</text></g>"}, "classified": {"n": "Classified", "s": "<g transform=\"rotate(6 80 80)\"><rect x=\"5.0\" y=\"55\" width=\"150\" height=\"50\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"6\"/><rect x=\"11.0\" y=\"61\" width=\"138\" height=\"38\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"2\"/><text x=\"80\" y=\"87\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"19\" fill=\"#1A1A1A\">CLASSIFIED</text></g>"}, "evidence": {"n": "Evidence", "s": "<g transform=\"rotate(-4 80 80)\"><rect x=\"5.0\" y=\"55\" width=\"150\" height=\"50\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"6\"/><rect x=\"11.0\" y=\"61\" width=\"138\" height=\"38\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"2\"/><text x=\"80\" y=\"87\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"26\" fill=\"#B3170F\">EVIDENCE</text></g>"}, "confidential": {"n": "Confidential", "s": "<g transform=\"rotate(7 80 80)\"><rect x=\"5.0\" y=\"55\" width=\"150\" height=\"50\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"6\"/><rect x=\"11.0\" y=\"61\" width=\"138\" height=\"38\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"2\"/><text x=\"80\" y=\"85\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"15\" fill=\"#B3170F\">CONFIDENTIAL</text></g>"}, "urgent": {"n": "Urgent", "s": "<g transform=\"rotate(-10 80 80)\"><rect x=\"5.0\" y=\"55\" width=\"150\" height=\"50\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"6\"/><rect x=\"11.0\" y=\"61\" width=\"138\" height=\"38\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"2\"/><text x=\"80\" y=\"87\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"26\" fill=\"#B3170F\">URGENT</text></g>"}, "reopened": {"n": "Reopened", "s": "<g transform=\"rotate(-5 80 80)\"><rect x=\"5.0\" y=\"55\" width=\"150\" height=\"50\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"6\"/><rect x=\"11.0\" y=\"61\" width=\"138\" height=\"38\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"2\"/><text x=\"80\" y=\"87\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"26\" fill=\"#1A1A1A\">REOPENED</text></g>"}, "solved": {"n": "Solved", "s": "<g transform=\"rotate(-12 80 80)\"><circle cx=\"80\" cy=\"80\" r=\"62\" fill=\"none\" stroke=\"#2F6B3A\" stroke-width=\"6\"/><circle cx=\"80\" cy=\"80\" r=\"52\" fill=\"none\" stroke=\"#2F6B3A\" stroke-width=\"2\"/><text x=\"80\" y=\"76\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"24\" fill=\"#2F6B3A\">SOLVED</text><text x=\"80\" y=\"102\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"11\" fill=\"#2F6B3A\">THRIVE CITY</text><path d=\"M40 84h80\" stroke=\"#2F6B3A\" stroke-width=\"2\"/></g>"}, "approved": {"n": "Approved", "s": "<g transform=\"rotate(-12 80 80)\"><circle cx=\"80\" cy=\"80\" r=\"62\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"6\"/><circle cx=\"80\" cy=\"80\" r=\"52\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"2\"/><text x=\"80\" y=\"76\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"18\" fill=\"#B3170F\">APPROVED</text><text x=\"80\" y=\"102\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"11\" fill=\"#B3170F\">DETECTIVE HQ</text><path d=\"M40 84h80\" stroke=\"#B3170F\" stroke-width=\"2\"/></g>"}, "xp-stamp": {"n": "XP stamp", "s": "<g transform=\"rotate(-12 80 80)\"><circle cx=\"80\" cy=\"80\" r=\"62\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"6\"/><circle cx=\"80\" cy=\"80\" r=\"52\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"2\"/><text x=\"80\" y=\"76\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"24\" fill=\"#B3170F\">+50 XP</text><text x=\"80\" y=\"102\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"14\" fill=\"#B3170F\">WELL DONE</text><path d=\"M40 84h80\" stroke=\"#B3170F\" stroke-width=\"2\"/></g>"}, "magnifying-glass": {"n": "Magnifying glass", "s": "<circle cx=\"68\" cy=\"66\" r=\"38\" fill=\"#DDEBF0\" fill-opacity=\"0.6\" stroke=\"#1A1A1A\" stroke-width=\"10\"/><path d=\"M50 52a22 22 0 0 1 22-10\" stroke=\"#FFF\" stroke-width=\"6\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M96 94l36 36\" stroke=\"#B3170F\" stroke-width=\"18\" stroke-linecap=\"round\"/>"}, "fingerprint": {"n": "Fingerprint", "s": "<g transform=\"rotate(-10 80 80)\"><ellipse cx=\"80\" cy=\"84\" rx=\"8\" ry=\"12\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"4\" stroke-dasharray=\"70 9\" stroke-dashoffset=\"0\"/><ellipse cx=\"80\" cy=\"84\" rx=\"15\" ry=\"21\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"4\" stroke-dasharray=\"40 7\" stroke-dashoffset=\"13\"/><ellipse cx=\"80\" cy=\"84\" rx=\"22\" ry=\"30\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"4\" stroke-dasharray=\"70 9\" stroke-dashoffset=\"26\"/><ellipse cx=\"80\" cy=\"84\" rx=\"29\" ry=\"39\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"4\" stroke-dasharray=\"40 7\" stroke-dashoffset=\"39\"/><ellipse cx=\"80\" cy=\"84\" rx=\"36\" ry=\"48\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"4\" stroke-dasharray=\"70 9\" stroke-dashoffset=\"52\"/><ellipse cx=\"80\" cy=\"84\" rx=\"43\" ry=\"57\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"4\" stroke-dasharray=\"40 7\" stroke-dashoffset=\"65\"/></g>"}, "footprints": {"n": "Footprints", "s": "<g transform=\"translate(55 120) rotate(-15)\"><ellipse cx=\"0\" cy=\"0\" rx=\"11\" ry=\"18\" fill=\"#1A1A1A\"/><ellipse cx=\"0\" cy=\"25\" rx=\"8\" ry=\"8\" fill=\"#1A1A1A\"/></g><g transform=\"translate(90 95) rotate(10)\"><ellipse cx=\"0\" cy=\"0\" rx=\"11\" ry=\"18\" fill=\"#1A1A1A\"/><ellipse cx=\"0\" cy=\"25\" rx=\"8\" ry=\"8\" fill=\"#1A1A1A\"/></g><g transform=\"translate(62 58) rotate(-12)\"><ellipse cx=\"0\" cy=\"0\" rx=\"11\" ry=\"18\" fill=\"#1A1A1A\"/><ellipse cx=\"0\" cy=\"25\" rx=\"8\" ry=\"8\" fill=\"#1A1A1A\"/></g><g transform=\"translate(98 30) rotate(12)\"><ellipse cx=\"0\" cy=\"0\" rx=\"11\" ry=\"18\" fill=\"#1A1A1A\"/><ellipse cx=\"0\" cy=\"25\" rx=\"8\" ry=\"8\" fill=\"#1A1A1A\"/></g>"}, "padlock-locked": {"n": "Padlock locked", "s": "<path d=\"M52 72V54a28 28 0 0 1 56 0v18\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"12\"/><rect x=\"36\" y=\"72\" width=\"88\" height=\"68\" rx=\"6\" fill=\"#B3170F\"/><circle cx=\"80\" cy=\"100\" r=\"9\" fill=\"#F4EFE6\"/><path d=\"M80 104v18\" stroke=\"#F4EFE6\" stroke-width=\"7\" stroke-linecap=\"round\"/>"}, "padlock-open": {"n": "Padlock open", "s": "<path d=\"M52 72V44a28 28 0 0 1 54-10\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"12\" stroke-linecap=\"round\"/><rect x=\"36\" y=\"72\" width=\"88\" height=\"68\" rx=\"6\" fill=\"#2F6B3A\"/><circle cx=\"80\" cy=\"104\" r=\"9\" fill=\"#F4EFE6\"/>"}, "key": {"n": "Key", "s": "<circle cx=\"48\" cy=\"80\" r=\"26\" fill=\"none\" stroke=\"#F2C200\" stroke-width=\"12\"/><path d=\"M74 80h66M118 80v20M134 80v14\" stroke=\"#F2C200\" stroke-width=\"12\" stroke-linecap=\"square\"/><circle cx=\"48\" cy=\"80\" r=\"26\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"2\"/>"}, "case-folder": {"n": "Case folder", "s": "<path d=\"M20 40h44l10 12h66v84H20z\" fill=\"#8A6A3F\"/><rect x=\"20\" y=\"58\" width=\"120\" height=\"78\" fill=\"#C8A473\"/><rect x=\"34\" y=\"80\" width=\"62\" height=\"16\" fill=\"#F4EFE6\"/><text x=\"65\" y=\"93\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"12\" fill=\"#1A1A1A\">CASE #01</text>"}, "evidence-bag": {"n": "Evidence bag", "s": "<rect x=\"34\" y=\"28\" width=\"92\" height=\"110\" rx=\"4\" fill=\"#E8EEF0\" fill-opacity=\"0.85\" stroke=\"#1A1A1A\" stroke-width=\"4\"/><rect x=\"34\" y=\"28\" width=\"92\" height=\"16\" fill=\"#B3170F\"/><rect x=\"44\" y=\"56\" width=\"72\" height=\"30\" fill=\"#F4EFE6\" stroke=\"#1A1A1A\" stroke-width=\"2\"/><text x=\"80\" y=\"76\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"14\" fill=\"#1A1A1A\">EVIDENCE</text><path d=\"M48 98h64M48 110h50M48 122h58\" stroke=\"#1A1A1A\" stroke-width=\"2\"/>"}, "detective-badge": {"n": "Detective badge", "s": "<path d=\"M80 18l14 18 22-4-2 22 18 14-18 14 2 22-22-4-14 18-14-18-22 4 2-22-18-14 18-14-2-22 22 4z\" fill=\"#F2C200\" stroke=\"#1A1A1A\" stroke-width=\"4\"/><circle cx=\"80\" cy=\"86\" r=\"26\" fill=\"#F4EFE6\" stroke=\"#1A1A1A\" stroke-width=\"3\"/><text x=\"80\" y=\"92\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"15\" fill=\"#1A1A1A\">MLC</text>"}, "stopwatch": {"n": "Stopwatch", "s": "<circle cx=\"80\" cy=\"90\" r=\"50\" fill=\"#F4EFE6\" stroke=\"#1A1A1A\" stroke-width=\"10\"/><rect x=\"68\" y=\"20\" width=\"24\" height=\"16\" fill=\"#1A1A1A\"/><path d=\"M80 90V56\" stroke=\"#B3170F\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M80 90l20 14\" stroke=\"#1A1A1A\" stroke-width=\"5\" stroke-linecap=\"round\"/><circle cx=\"80\" cy=\"90\" r=\"6\" fill=\"#1A1A1A\"/>"}, "envelope": {"n": "Envelope", "s": "<rect x=\"20\" y=\"44\" width=\"120\" height=\"80\" fill=\"#C8A473\" stroke=\"#1A1A1A\" stroke-width=\"4\"/><path d=\"M20 44l60 48 60-48\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"4\"/><circle cx=\"80\" cy=\"92\" r=\"13\" fill=\"#B3170F\"/>"}, "map-pin": {"n": "Map pin", "s": "<path d=\"M80 140C50 100 40 82 40 64a40 40 0 0 1 80 0c0 18-10 36-40 76z\" fill=\"#B3170F\" stroke=\"#1A1A1A\" stroke-width=\"4\"/><circle cx=\"80\" cy=\"62\" r=\"15\" fill=\"#F4EFE6\"/>"}, "walkie-talkie": {"n": "Walkie-talkie", "s": "<rect x=\"52\" y=\"44\" width=\"56\" height=\"96\" rx=\"8\" fill=\"#1A1A1A\"/><rect x=\"88\" y=\"16\" width=\"8\" height=\"30\" fill=\"#1A1A1A\"/><rect x=\"62\" y=\"56\" width=\"36\" height=\"22\" fill=\"#9FC7A6\"/><g fill=\"#555\"><rect x=\"62\" y=\"90\" width=\"6\" height=\"6\"/><rect x=\"62\" y=\"100\" width=\"6\" height=\"6\"/><rect x=\"62\" y=\"110\" width=\"6\" height=\"6\"/><rect x=\"62\" y=\"120\" width=\"6\" height=\"6\"/><rect x=\"72\" y=\"90\" width=\"6\" height=\"6\"/><rect x=\"72\" y=\"100\" width=\"6\" height=\"6\"/><rect x=\"72\" y=\"110\" width=\"6\" height=\"6\"/><rect x=\"72\" y=\"120\" width=\"6\" height=\"6\"/><rect x=\"82\" y=\"90\" width=\"6\" height=\"6\"/><rect x=\"82\" y=\"100\" width=\"6\" height=\"6\"/><rect x=\"82\" y=\"110\" width=\"6\" height=\"6\"/><rect x=\"82\" y=\"120\" width=\"6\" height=\"6\"/><rect x=\"92\" y=\"90\" width=\"6\" height=\"6\"/><rect x=\"92\" y=\"100\" width=\"6\" height=\"6\"/><rect x=\"92\" y=\"110\" width=\"6\" height=\"6\"/><rect x=\"92\" y=\"120\" width=\"6\" height=\"6\"/></g>"}, "clue-card": {"n": "Clue card", "s": "<rect x=\"26\" y=\"34\" width=\"108\" height=\"92\" fill=\"#F4EFE6\" stroke=\"#1A1A1A\" stroke-width=\"3\" transform=\"rotate(-5 80 80)\"/><text x=\"80\" y=\"96\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"64\" fill=\"#B3170F\" transform=\"rotate(-5 80 80)\">?</text>"}, "push-pin": {"n": "Push pin", "s": "<circle cx=\"80\" cy=\"74\" r=\"26\" fill=\"#B3170F\"/><circle cx=\"70.9\" cy=\"64.9\" r=\"9.1\" fill=\"#FF8A80\"/><path d=\"M80 100v40\" stroke=\"#888\" stroke-width=\"4\"/>"}, "masking-tape": {"n": "Masking tape", "s": "<rect x=\"26\" y=\"62\" width=\"108\" height=\"34\" fill=\"#F2C200\" fill-opacity=\"0.8\" transform=\"rotate(-14 80 80)\"/>"}, "paper-clip": {"n": "Paper clip", "s": "<path d=\"M66 140V48a14 14 0 0 1 28 0v80a8 8 0 0 1-16 0V56\" fill=\"none\" stroke=\"#7A7A7A\" stroke-width=\"6\" stroke-linecap=\"round\"/>"}, "sticky-note": {"n": "Sticky note", "s": "<path d=\"M30 30h100v86l-14 14H30z\" fill=\"#FFF6C9\" stroke=\"#C9B860\" stroke-width=\"2\"/><path d=\"M116 130v-14h14\" fill=\"#E9DCA0\"/><path d=\"M42 58h72M42 76h72M42 94h50\" stroke=\"#B8A85A\" stroke-width=\"2\"/>"}, "polaroid-frame": {"n": "Polaroid frame", "s": "<g transform=\"rotate(4 80 80)\"><rect x=\"32\" y=\"22\" width=\"96\" height=\"116\" fill=\"#FFF\" stroke=\"#DDD\"/><rect x=\"40\" y=\"30\" width=\"80\" height=\"80\" fill=\"#3A332C\"/></g>"}, "torn-paper": {"n": "Torn paper", "s": "<path d=\"M18 40 L30 34 L44 42 L60 32 L74 40 L92 33 L106 41 L122 34 L142 40 V124 L128 130 L112 122 L96 130 L80 122 L62 130 L46 122 L30 130 L18 124 Z\" fill=\"#F4EFE6\" stroke=\"#CFC6B3\" stroke-width=\"2\"/>"}, "lined-page": {"n": "Lined page", "s": "<rect x=\"34\" y=\"20\" width=\"92\" height=\"120\" fill=\"#FFF\" stroke=\"#CCC\"/><path d=\"M34 40h92\" stroke=\"#C9D6E3\" stroke-width=\"2\"/><path d=\"M34 54h92\" stroke=\"#C9D6E3\" stroke-width=\"2\"/><path d=\"M34 68h92\" stroke=\"#C9D6E3\" stroke-width=\"2\"/><path d=\"M34 82h92\" stroke=\"#C9D6E3\" stroke-width=\"2\"/><path d=\"M34 96h92\" stroke=\"#C9D6E3\" stroke-width=\"2\"/><path d=\"M34 110h92\" stroke=\"#C9D6E3\" stroke-width=\"2\"/><path d=\"M34 124h92\" stroke=\"#C9D6E3\" stroke-width=\"2\"/><path d=\"M50 20v120\" stroke=\"#B3170F\" stroke-width=\"2\" stroke-opacity=\"0.6\"/>"}, "red-string": {"n": "Red string", "s": "<circle cx=\"30\" cy=\"40\" r=\"10\" fill=\"#B3170F\"/><circle cx=\"26.5\" cy=\"36.5\" r=\"3.5\" fill=\"#FF8A80\"/><circle cx=\"130\" cy=\"60\" r=\"10\" fill=\"#B3170F\"/><circle cx=\"126.5\" cy=\"56.5\" r=\"3.5\" fill=\"#FF8A80\"/><circle cx=\"70\" cy=\"128\" r=\"10\" fill=\"#B3170F\"/><circle cx=\"66.5\" cy=\"124.5\" r=\"3.5\" fill=\"#FF8A80\"/><path d=\"M30 40L130 60L70 128L30 40\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"3\"/>"}, "crime-scene-tape": {"n": "Crime-scene tape", "s": "<g transform=\"rotate(-12 80 80)\"><rect x=\"-10\" y=\"64\" width=\"180\" height=\"32\" fill=\"#F2C200\"/><path d=\"M4 64l-14 32h12l14-32z\" fill=\"#1A1A1A\"/><path d=\"M34 64l-14 32h12l14-32z\" fill=\"#1A1A1A\"/><path d=\"M64 64l-14 32h12l14-32z\" fill=\"#1A1A1A\"/><path d=\"M94 64l-14 32h12l14-32z\" fill=\"#1A1A1A\"/><path d=\"M124 64l-14 32h12l14-32z\" fill=\"#1A1A1A\"/><path d=\"M154 64l-14 32h12l14-32z\" fill=\"#1A1A1A\"/></g>"}, "coffee-ring": {"n": "Coffee ring", "s": "<circle cx=\"80\" cy=\"80\" r=\"48\" fill=\"none\" stroke=\"#8A6A3F\" stroke-opacity=\"0.45\" stroke-width=\"7\" stroke-dasharray=\"120 6 60 10\"/><circle cx=\"80\" cy=\"80\" r=\"44\" fill=\"none\" stroke=\"#8A6A3F\" stroke-opacity=\"0.2\" stroke-width=\"3\"/>"}, "circle-it": {"n": "Circle it", "s": "<path d=\"M30 86c-6-34 34-56 66-52s44 32 32 54-56 34-82 20c-14-8-18-22-12-34\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"6\" stroke-linecap=\"round\"/>"}, "underline": {"n": "Underline", "s": "<path d=\"M20 96c30-10 70-12 120-6M30 110c34-6 60-6 96-2\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"6\" stroke-linecap=\"round\"/>"}, "arrow-curve": {"n": "Arrow curve", "s": "<path d=\"M26 120C40 60 90 40 128 54\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M108 36l22 18-26 12\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"}, "arrow-straight": {"n": "Arrow straight", "s": "<path d=\"M22 84h104\" stroke=\"#B3170F\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M104 60l26 24-26 24\" fill=\"none\" stroke=\"#B3170F\" stroke-width=\"9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"}, "speech-bubble": {"n": "Speech bubble", "s": "<path d=\"M24 34h112v70H70l-26 24 4-24H24z\" fill=\"#F4EFE6\" stroke=\"#1A1A1A\" stroke-width=\"5\" stroke-linejoin=\"round\"/>"}, "thought-bubble": {"n": "Thought bubble", "s": "<path d=\"M40 90c-20 0-24-30-4-34 0-22 30-28 40-14 10-16 42-12 42 8 20 2 20 34 0 38-4 14-30 16-38 4-14 10-36 8-40-2z\" fill=\"#F4EFE6\" stroke=\"#1A1A1A\" stroke-width=\"5\"/><circle cx=\"40\" cy=\"116\" r=\"8\" fill=\"#F4EFE6\" stroke=\"#1A1A1A\" stroke-width=\"4\"/><circle cx=\"26\" cy=\"134\" r=\"5\" fill=\"#F4EFE6\" stroke=\"#1A1A1A\" stroke-width=\"3\"/>"}, "question-mark": {"n": "Question mark", "s": "<text x=\"80\" y=\"128\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"130\" fill=\"#B3170F\">?</text>"}, "exclamation": {"n": "Exclamation", "s": "<text x=\"80\" y=\"128\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"130\" fill=\"#1A1A1A\">!</text>"}, "tick": {"n": "Tick", "s": "<path d=\"M30 86l30 30 72-76\" fill=\"none\" stroke=\"#2F6B3A\" stroke-width=\"14\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"}, "lightbulb": {"n": "Lightbulb", "s": "<path d=\"M80 22a38 38 0 0 0-22 70c6 6 8 12 8 20h28c0-8 2-14 8-20a38 38 0 0 0-22-70z\" fill=\"#F2C200\" stroke=\"#1A1A1A\" stroke-width=\"5\"/><path d=\"M66 122h28M68 134h24\" stroke=\"#1A1A1A\" stroke-width=\"6\" stroke-linecap=\"round\"/><path d=\"M28 58 l-12 0\" stroke=\"#1A1A1A\" stroke-width=\"5\" stroke-linecap=\"round\"/><path d=\"M132 58 l12 0\" stroke=\"#1A1A1A\" stroke-width=\"5\" stroke-linecap=\"round\"/><path d=\"M43.6 21.6 l-8.399999999999999 -8.399999999999999\" stroke=\"#1A1A1A\" stroke-width=\"5\" stroke-linecap=\"round\"/><path d=\"M116.4 21.6 l8.399999999999999 -8.399999999999999\" stroke=\"#1A1A1A\" stroke-width=\"5\" stroke-linecap=\"round\"/>"}, "heart": {"n": "Heart", "s": "<path d=\"M80 136C30 100 22 78 22 60a28 28 0 0 1 58-12 28 28 0 0 1 58 12c0 18-8 40-58 76z\" fill=\"#B3170F\" stroke=\"#1A1A1A\" stroke-width=\"4\"/>"}, "sun-energy": {"n": "Sun (energy)", "s": "<circle cx=\"80\" cy=\"80\" r=\"30\" fill=\"#F2C200\" stroke=\"#1A1A1A\" stroke-width=\"5\"/><path d=\"M124 80L142 80\" stroke=\"#1A1A1A\" stroke-width=\"6\" stroke-linecap=\"round\"/><path d=\"M36 80L18 80\" stroke=\"#1A1A1A\" stroke-width=\"6\" stroke-linecap=\"round\"/><path d=\"M80 124L80 142\" stroke=\"#1A1A1A\" stroke-width=\"6\" stroke-linecap=\"round\"/><path d=\"M80 36L80 18\" stroke=\"#1A1A1A\" stroke-width=\"6\" stroke-linecap=\"round\"/><path d=\"M111 111L124 124\" stroke=\"#1A1A1A\" stroke-width=\"6\" stroke-linecap=\"round\"/><path d=\"M49 111L36 124\" stroke=\"#1A1A1A\" stroke-width=\"6\" stroke-linecap=\"round\"/><path d=\"M111 49L124 36\" stroke=\"#1A1A1A\" stroke-width=\"6\" stroke-linecap=\"round\"/><path d=\"M49 49L36 36\" stroke=\"#1A1A1A\" stroke-width=\"6\" stroke-linecap=\"round\"/>"}, "moon-sleep": {"n": "Moon (sleep)", "s": "<path d=\"M100 24a56 56 0 1 0 36 92 46 46 0 1 1-36-92z\" fill=\"#F4EFE6\" stroke=\"#1A1A1A\" stroke-width=\"5\"/><text x=\"118\" y=\"54\" font-family=\"Special Elite\" font-size=\"22\" fill=\"#1A1A1A\">z</text><text x=\"130\" y=\"36\" font-family=\"Special Elite\" font-size=\"16\" fill=\"#1A1A1A\">z</text>"}, "growing-plant": {"n": "Growing plant", "s": "<path d=\"M80 136V70\" stroke=\"#2F6B3A\" stroke-width=\"7\"/><path d=\"M80 92c-30 0-40-20-40-36 22 0 40 12 40 36zM80 74c0-30 20-44 44-44 0 26-18 44-44 44z\" fill=\"#2F6B3A\"/><path d=\"M50 136h60\" stroke=\"#8A6A3F\" stroke-width=\"10\" stroke-linecap=\"round\"/>"}, "brain": {"n": "Brain", "s": "<path d=\"M80 34c-14-12-38-4-40 14-18 4-22 28-8 38-6 18 10 34 28 30 6 12 20 12 20 0z\" fill=\"#F2B8C0\" stroke=\"#1A1A1A\" stroke-width=\"5\"/><path d=\"M80 34c14-12 38-4 40 14 18 4 22 28 8 38 6 18-10 34-28 30-6 12-20 12-20 0z\" fill=\"#F2B8C0\" stroke=\"#1A1A1A\" stroke-width=\"5\"/><path d=\"M80 34v82M54 60c8 4 10 12 6 20M106 60c-8 4-10 12-6 20\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"4\"/>"}, "crew-group": {"n": "Crew (group)", "s": "<circle cx=\"46\" cy=\"58\" r=\"15\" fill=\"#C8A473\"/><path d=\"M22 114c0-26 10-38 24-38s24 12 24 38\" fill=\"#C8A473\"/><circle cx=\"114\" cy=\"58\" r=\"15\" fill=\"#C8A473\"/><path d=\"M90 114c0-26 10-38 24-38s24 12 24 38\" fill=\"#C8A473\"/><circle cx=\"80\" cy=\"48\" r=\"15\" fill=\"#B3170F\"/><path d=\"M56 104c0-26 10-38 24-38s24 12 24 38\" fill=\"#B3170F\"/>"}, "target-goal": {"n": "Target / goal", "s": "<circle cx=\"80\" cy=\"80\" r=\"58\" fill=\"#B3170F\"/><circle cx=\"80\" cy=\"80\" r=\"44\" fill=\"#F4EFE6\"/><circle cx=\"80\" cy=\"80\" r=\"30\" fill=\"#B3170F\"/><circle cx=\"80\" cy=\"80\" r=\"14\" fill=\"#F4EFE6\"/><path d=\"M80 80l52-52\" stroke=\"#1A1A1A\" stroke-width=\"5\"/><path d=\"M118 30l16-4-4 16\" fill=\"#1A1A1A\"/>"}, "mountain-climb": {"n": "Mountain climb", "s": "<path d=\"M14 136L66 50l22 34 18-24 40 76z\" fill=\"#C8A473\" stroke=\"#1A1A1A\" stroke-width=\"5\" stroke-linejoin=\"round\"/><path d=\"M66 50v-28l22 9-22 9\" fill=\"#B3170F\" stroke=\"#1A1A1A\" stroke-width=\"3\"/>"}, "self-quarter": {"n": "Self Quarter", "s": "<g transform=\"rotate(-12 80 80)\"><circle cx=\"80\" cy=\"80\" r=\"62\" fill=\"none\" stroke=\"#7B2D8E\" stroke-width=\"6\"/><circle cx=\"80\" cy=\"80\" r=\"52\" fill=\"none\" stroke=\"#7B2D8E\" stroke-width=\"2\"/><text x=\"80\" y=\"76\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"24\" fill=\"#7B2D8E\">SELF</text><text x=\"80\" y=\"102\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"14\" fill=\"#7B2D8E\">DISTRICT 1</text><path d=\"M40 84h80\" stroke=\"#7B2D8E\" stroke-width=\"2\"/></g>"}, "crew-yards": {"n": "Crew Yards", "s": "<g transform=\"rotate(-12 80 80)\"><circle cx=\"80\" cy=\"80\" r=\"62\" fill=\"none\" stroke=\"#13705A\" stroke-width=\"6\"/><circle cx=\"80\" cy=\"80\" r=\"52\" fill=\"none\" stroke=\"#13705A\" stroke-width=\"2\"/><text x=\"80\" y=\"76\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"24\" fill=\"#13705A\">OTHERS</text><text x=\"80\" y=\"102\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"14\" fill=\"#13705A\">DISTRICT 2</text><path d=\"M40 84h80\" stroke=\"#13705A\" stroke-width=\"2\"/></g>"}, "civic-square": {"n": "Civic Square", "s": "<g transform=\"rotate(-12 80 80)\"><circle cx=\"80\" cy=\"80\" r=\"62\" fill=\"none\" stroke=\"#C46A10\" stroke-width=\"6\"/><circle cx=\"80\" cy=\"80\" r=\"52\" fill=\"none\" stroke=\"#C46A10\" stroke-width=\"2\"/><text x=\"80\" y=\"76\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"14\" fill=\"#C46A10\">COMMUNITY</text><text x=\"80\" y=\"102\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"14\" fill=\"#C46A10\">DISTRICT 3</text><path d=\"M40 84h80\" stroke=\"#C46A10\" stroke-width=\"2\"/></g>"}, "signal-tower": {"n": "Signal Tower", "s": "<g transform=\"rotate(-12 80 80)\"><circle cx=\"80\" cy=\"80\" r=\"62\" fill=\"none\" stroke=\"#1D5FA8\" stroke-width=\"6\"/><circle cx=\"80\" cy=\"80\" r=\"52\" fill=\"none\" stroke=\"#1D5FA8\" stroke-width=\"2\"/><text x=\"80\" y=\"76\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"24\" fill=\"#1D5FA8\">TECH</text><text x=\"80\" y=\"102\" text-anchor=\"middle\" font-family=\"Special Elite\" font-size=\"14\" fill=\"#1D5FA8\">DISTRICT 4</text><path d=\"M40 84h80\" stroke=\"#1D5FA8\" stroke-width=\"2\"/></g>"}, "exhibition": {"n": "Exhibition", "s": "<path d=\"M80 18l50 40-50 84-50-84z\" fill=\"#F2C200\" stroke=\"#1A1A1A\" stroke-width=\"5\" stroke-linejoin=\"round\"/><path d=\"M30 58h100M58 58l22 84 22-84M58 58l22-40 22 40\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"3\"/>"}};
@@ -912,8 +948,10 @@ const SLIDE_TYPES = {
   investigate: { label: 'Investigate', phase: 'investigate', dark: false, minutes: 20 },
   debrief:     { label: 'Debrief', phase: 'debrief', dark: false, minutes: 10 },
   capture:     { label: 'Capture', phase: 'capture', dark: true, minutes: 5 },
+  lock:        { label: 'Padlock', phase: 'investigate', dark: false },
+  twist:       { label: 'Plot twist', phase: null, dark: true },
 };
-const ADDABLE = ['intel', 'picture', 'video', 'question', 'check', 'timer', 'hook', 'investigate', 'debrief', 'title'];
+const ADDABLE = ['lock', 'twist', 'intel', 'picture', 'video', 'question', 'check', 'timer', 'hook', 'investigate', 'debrief', 'title'];
 const LAYOUTS = [['pin', 'Pinned photo'], ['half', 'Half and half'], ['bg', 'Full background'], ['sticker', 'Corner sticker']];
 
 function newSlide(type, c = {}) {
@@ -929,6 +967,8 @@ function newSlide(type, c = {}) {
   if (type === 'investigate') { s.heading = 'Investigate'; s.text = '- Open your crew envelope\n- Work through the clues\n- Crack the case'; s.minutes = 20; }
   if (type === 'debrief') { s.heading = 'What did your crew discover?'; s.text = 'Spokespeople, report in.'; s.minutes = 10; }
   if (type === 'capture') { s.heading = 'File your case notes'; s.minutes = 5; }
+  if (type === 'lock') { s.heading = 'The first lock'; s.text = 'What crews need to work out to find the code.'; s.reward = 'What opens when they crack it.'; s.hint = ''; s.codeLen = 0; }
+  if (type === 'twist') { s.heading = 'Plot twist'; s.text = 'For the next 2 minutes, only one person in each crew may speak.'; }
   return s;
 }
 
@@ -1002,6 +1042,8 @@ function slideTags(slides) {
       case 'debrief': return `DEBRIEF${mins ? ` · ${mins} MIN` : ''}`;
       case 'capture': return `CAPTURE${mins ? ` · ${mins} MIN` : ''}`;
       case 'timer': return 'CREW TIME';
+      case 'lock': return of > 1 ? `PADLOCK ${n} OF ${of}` : 'PADLOCK';
+      case 'twist': return 'BREAKING';
       default: return '';
     }
   });
@@ -1129,6 +1171,24 @@ function renderSlide(s, c, opts = {}) {
         <p class="s-capture-go">Open the case on your device → Capture</p>`;
       break;
     }
+    case 'lock': {
+      const open = !!opts.open;
+      const len = Math.max(0, Math.min(20, Number(s.codeLen) || 0));
+      const code = opts.code ? normCode(opts.code) : '';
+      const boxes = len ? `<div class="s-code">${Array.from({ length: len }, (_, k) => `<span>${open && code ? esc(code[k] || '') : ''}</span>`).join('')}</div>` : '';
+      inner = `${tagHtml}<div class="s-lock ${open ? 'open' : ''}">
+          <div class="s-lock-icon">${padlockSvg(open)}</div>
+          <div class="s-lock-main"><h1 class="s-h2">${esc(s.heading)}</h1><div class="s-rich">${richText(s.text)}</div>${boxes}
+            ${open && s.reward ? `<div class="s-reward"><b>UNLOCKED</b>${richText(s.reward)}</div>` : ''}
+            ${!open && opts.mode === 'present' ? '<p class="s-hint">Crews enter the code on their device. Press Next to open the lock.</p>' : ''}
+          </div></div>
+        ${open ? '<span class="s-stamp cracked">CRACKED</span>' : ''}${img.html && img.layout === 'sticker' ? img.html : ''}`;
+      break;
+    }
+    case 'twist':
+      inner = `<div class="s-twist"><p class="s-twist-kicker">BREAKING</p><h1>${esc(s.heading || 'Plot twist')}</h1>${s.text ? `<div class="s-rich">${richText(s.text)}</div>` : ''}</div>`;
+      dark = true;
+      break;
     default:
       inner = `<div class="s-paper"><h1 class="s-h2">${esc(s.heading)}</h1></div>`;
   }
@@ -1157,6 +1217,12 @@ function fitSlides(root = document) {
     f.style.setProperty('--k', k);
     frameObserver.observe(f);
   });
+}
+
+function padlockSvg(open) {
+  return open
+    ? '<svg viewBox="0 0 48 56" aria-hidden="true"><path d="M14 24V14a10 10 0 0 1 19.5-3" fill="none" stroke="#2F6B3A" stroke-width="5" stroke-linecap="round"/><rect x="6" y="24" width="36" height="28" rx="3" fill="#2F6B3A"/><circle cx="24" cy="37" r="4" fill="#F4EFE6"/></svg>'
+    : '<svg viewBox="0 0 48 56" aria-hidden="true"><path d="M14 24V16a10 10 0 0 1 20 0v8" fill="none" stroke="#B3170F" stroke-width="5"/><rect x="6" y="24" width="36" height="28" rx="3" fill="#B3170F"/><circle cx="24" cy="36" r="4" fill="#F4EFE6"/><path d="M24 39v6" stroke="#F4EFE6" stroke-width="3" stroke-linecap="round"/></svg>';
 }
 
 // ===== student.js =====
@@ -1309,10 +1375,24 @@ async function studentCase(id) {
     const passed = new Set(store(checkKey) || []);
     const checks = slides.map((s, i) => (s.type === 'check' ? i : -1)).filter((i) => i >= 0);
     const unlocked = () => !!sub || isT || checks.every((i) => passed.has(i));
+    const lockKey = `l2l-locks-${me.id}-${c.id}`;
+    const opened = new Set(store(lockKey) || []);
+    const lockIdx = slides.map((s, i) => (s.type === 'lock' ? i : -1)).filter((i) => i >= 0);
+    const isOpen = (i) => isT || !!sub || opened.has(slides[i].id);
+    const lockReady = (i) => lockIdx.filter((j) => j < i).every(isOpen);
+    const lockForm = (i) => (isOpen(i) ? '<p class="lock-msg"><b class="ok-text">Lock cracked.</b></p>'
+      : lockReady(i) ? `<form class="lock-form" data-lockform="${i}" autocomplete="off">
+          <label for="code-${i}">Enter the code</label>
+          <div class="lock-row"><input id="code-${i}" class="code-in" maxlength="40" autocapitalize="characters" spellcheck="false" placeholder="${'_ '.repeat(Math.min(12, slides[i].codeLen || 4)).trim()}">
+          <button class="stamp-btn">Try code</button>${slides[i].hint ? `<button type="button" class="link-btn" data-hint="${i}">Need a hint?</button>` : ''}</div>
+          <p class="lock-msg" id="lm-${i}" aria-live="polite"></p></form>`
+      : '<p class="lock-msg muted">Crack the lock above first.</p>');
 
     const phaseOf = (s) => SLIDE_TYPES[s.type]?.phase;
     const inPhase = (p) => slides.map((s, i) => ({ s, i })).filter(({ s }) => phaseOf(s) === p);
-    const frames = (items) => items.map(({ s, i }) => (s.type === 'check'
+    const frames = (items) => items.map(({ s, i }) => (s.type === 'lock'
+      ? `<div class="lock-wrap" data-lock="${i}">${slideFrame(s, c, { mode: 'student', tag: tags[i], open: isOpen(i) })}${lockForm(i)}</div>`
+      : s.type === 'check'
       ? `<div class="check-wrap" data-check="${i}">${slideFrame(s, c, { mode: 'student', tag: tags[i], interactive: !passed.has(i) && !sub, reveal: passed.has(i) || !!sub })}
           <p class="check-msg" id="cm-${i}" aria-live="polite">${passed.has(i) || sub ? '<b class="ok-text">Intel confirmed.</b>' : 'Tap an answer.'}</p></div>`
       : slideFrame(s, c, { mode: 'student', tag: tags[i] }))).join('');
@@ -1384,6 +1464,37 @@ async function studentCase(id) {
         }
       });
     });
+    // padlocks
+    const wireLocks = () => {
+      $$('[data-lockform]').forEach((f) => f.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const i = Number(f.dataset.lockform);
+        const s = slides[i];
+        const val = $('.code-in', f).value;
+        if (!normCode(val)) return;
+        const ok = s.codeHash && (await codeHash(s.id, val)) === s.codeHash;
+        const msg = $(`#lm-${i}`);
+        if (!ok) {
+          msg.innerHTML = '<b class="bad-text">Not the code.</b> Check your clues and try again.';
+          f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
+          return;
+        }
+        opened.add(s.id); store(lockKey, [...opened]);
+        toast('Lock cracked!');
+        lockIdx.forEach((j) => {
+          const w = $(`[data-lock="${j}"]`);
+          if (!w) return;
+          w.innerHTML = slideFrame(slides[j], c, { mode: 'student', tag: tags[j], open: isOpen(j) }) + lockForm(j);
+        });
+        fitSlides();
+        wireLocks();
+      }));
+      $$('[data-hint]').forEach((b) => b.addEventListener('click', () => {
+        const i = Number(b.dataset.hint);
+        $(`#lm-${i}`).innerHTML = `<span class="hint-box"><b>Hint:</b> ${esc(slides[i].hint)}</span>`;
+      }));
+    };
+    wireLocks();
     $$('[data-step]').forEach((cb) => cb.addEventListener('change', () => {
       const key = `l2l-steps-${me.id}-${c.id}`;
       const set = new Set(store(key) || []);
@@ -1797,6 +1908,8 @@ async function caseBuilder(id, extra) {
       if (!data) { location.hash = '#/cases'; return; }
       c = data;
       c.slides = clone(slidesFor(c));
+      const { data: codes } = await sb.from('lock_codes').select('slide_id, code').eq('challenge_id', c.id);
+      (codes || []).forEach((r) => { const s = c.slides.find((x) => x.id === r.slide_id); if (s) s.code = r.code; });
     }
     const waiting = await waitingCount();
     buildEditor(c, waiting);
@@ -2002,6 +2115,14 @@ function buildEditor(c, waiting) {
     if (t === 'timer') f = field('heading', 'Heading') + field('minutes', 'Minutes', { type: 'number' });
     if (t === 'investigate') f = field('heading', 'Heading') + field('text', 'Instructions for crews', { area: true, rows: 5, hint: 'Lines starting with - become numbered steps.' }) + field('minutes', 'Timer (minutes, 0 for none)', { type: 'number' });
     if (t === 'debrief') f = field('heading', 'Debrief question') + field('text', 'Line underneath', { ph: 'Spokespeople, report in.' }) + field('minutes', 'Minutes', { type: 'number' });
+    if (t === 'lock') {
+      f = field('heading', 'Lock name', { ph: 'The torn map' })
+        + field('text', 'The clue', { area: true, rows: 4, hint: 'What crews must work out to find the code. Put the puzzle itself on cards in their envelope.' })
+        + field('code', 'The code', { max: 40, ph: 'e.g. YOU ARE NOT LOST or 4271', hint: 'Spaces and capitals don’t matter. Students never see this: it’s stored separately, for teachers only.' })
+        + field('hint', 'Hint (optional)', { ph: 'Shown if a crew asks for one' })
+        + field('reward', 'What opens when they crack it', { area: true, rows: 3, hint: 'e.g. the next line of inquiry, a message, or where the next envelope is hidden.' });
+    }
+    if (t === 'twist') f = field('heading', 'Big headline', { ph: 'Plot twist' }) + field('text', 'What happens now', { area: true, rows: 3 }) + '<p class="hint">Twist cards only appear in Present mode, so they’re a surprise. Drop one in during a crew challenge.</p>';
     if (t === 'capture') f = field('heading', 'Heading') + '<p class="hint">This slide fills itself from “Capture and closing” below: the evidence ask and the first three case-notes questions.</p>';
 
     const img = s.image || {};
@@ -2104,6 +2225,7 @@ function buildEditor(c, waiting) {
     $$('#editor [data-k]').forEach((el) => el.addEventListener('input', () => {
       const k = el.dataset.k;
       s[k] = k === 'minutes' ? Math.max(0, Math.min(120, Number(el.value) || 0)) : el.value;
+      if (k === 'code') s.codeLen = normCode(el.value).length;
       refreshSlide();
     }));
     $('#s-type').addEventListener('change', (e) => {
@@ -2194,11 +2316,19 @@ function buildEditor(c, waiting) {
   // ----- save -----
   async function save() {
     if (!c.title.trim()) return toast('Give the case a title.', 'warn');
+    const noCode = c.slides.find((s) => s.type === 'lock' && !normCode(s.code));
+    if (noCode) { sel = c.slides.indexOf(noCode); paintStrip(); paintEditor(); return toast('This padlock needs a code before you save.', 'warn'); }
+    for (const s of c.slides) {
+      if (s.type !== 'lock') continue;
+      s.codeLen = normCode(s.code).length;
+      s.codeHash = await codeHash(s.id, s.code);
+    }
+    const publicSlides = c.slides.map(({ code, ...rest }) => rest);
     const row = {
       title: c.title.trim().slice(0, 80), brief: c.brief || '', element: (c.element || '').trim() || null, xp: c.xp,
       prompts: c.prompts?.length ? c.prompts : DEFAULT_PROMPTS, steps: c.steps || [], week: c.week || null, boss: !!c.boss,
       note: c.note || null, district: c.district || 1, location: (c.location || '').trim() || null, message: (c.message || '').trim() || null,
-      slides: c.slides, closed_msg: (c.closed_msg || '').trim() || null, reopen_msg: (c.reopen_msg || '').trim() || null,
+      slides: publicSlides, closed_msg: (c.closed_msg || '').trim() || null, reopen_msg: (c.reopen_msg || '').trim() || null,
       capture_ask: (c.capture_ask || '').trim() || null, active: !!c.active,
     };
     $$('#save, #save2').forEach((b) => { b.disabled = true; b.textContent = 'Saving…'; });
@@ -2209,6 +2339,15 @@ function buildEditor(c, waiting) {
     $('#save').textContent = 'Save';
     $('#save2').textContent = 'Save case';
     if (res.error) return toast(friendlyError(res.error), 'warn');
+    const cid = c.id || res.data.id;
+    const locks = c.slides.filter((s) => s.type === 'lock');
+    if (locks.length) {
+      const { error: ce } = await sb.from('lock_codes').upsert(locks.map((s) => ({ challenge_id: cid, slide_id: s.id, code: normCode(s.code), updated_at: new Date().toISOString() })));
+      if (ce) return toast(`Saved, but the padlock codes didn’t save: ${friendlyError(ce)}`, 'warn');
+    }
+    const { data: oldCodes } = await sb.from('lock_codes').select('slide_id').eq('challenge_id', cid);
+    const gone = (oldCodes || []).map((r) => r.slide_id).filter((sid) => !locks.some((s) => s.id === sid));
+    if (gone.length) await sb.from('lock_codes').delete().eq('challenge_id', cid).in('slide_id', gone);
     dirty = false;
     leaveGuard = null;
     toast('Case saved');
@@ -2239,6 +2378,11 @@ async function presentMode(id, start) {
     if (!c) { location.hash = '#/cases'; return; }
     const slides = slidesFor(c);
     const tags = slideTags(slides);
+    const codes = {};
+    if (slides.some((s) => s.type === 'lock')) {
+      const { data: cr } = await sb.from('lock_codes').select('slide_id, code').eq('challenge_id', c.id);
+      (cr || []).forEach((r) => { codes[r.slide_id] = r.code; });
+    }
     let i = Math.max(0, Math.min(slides.length - 1, Number(start) || 0));
     let reveal = false;
     const timers = {};
@@ -2294,13 +2438,13 @@ async function presentMode(id, start) {
     function resetTimer() { const t = timerFor(i); if (!t) return; t.left = t.total; t.running = false; clearInterval(tick); paintTimer(); }
     function paint() {
       const t = timerFor(i);
-      $('#pframe').innerHTML = renderSlide(slides[i], c, { mode: 'present', tag: tags[i], reveal, timerSecs: t ? t.left : undefined });
+      $('#pframe').innerHTML = renderSlide(slides[i], c, { mode: 'present', tag: tags[i], reveal, open: slides[i].type === 'lock' && reveal, code: codes[slides[i].id], timerSecs: t ? t.left : undefined });
       $('#p-count').textContent = `${i + 1} / ${slides.length} · ${SLIDE_TYPES[slides[i].type]?.label || ''}`;
       fitSlides($('#present'));
       paintTimer();
     }
     function go(dir) {
-      if (dir > 0 && slides[i].type === 'check' && !reveal) { reveal = true; paint(); return; }
+      if (dir > 0 && ['check', 'lock'].includes(slides[i].type) && !reveal) { reveal = true; paint(); return; }
       const n = Math.max(0, Math.min(slides.length - 1, i + dir));
       if (n === i) return;
       const t = timerFor(i);
