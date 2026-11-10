@@ -667,6 +667,14 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
 .polaroid[data-view]:hover::after, .polaroid[data-view]:focus-visible::after { opacity: 1; background: #B3170F; }
 @media (max-width: 700px) { .polaroid { width: 46%; } .case-file .file-body .evidence-board { width: 100%; } }
 .build-tag{position:fixed;right:8px;bottom:6px;font:11px/1 "Courier Prime",monospace;color:rgba(26,26,26,.55);background:rgba(244,239,230,.7);padding:3px 6px;z-index:5;pointer-events:none}body.presenting .build-tag{display:none}
+/* teacher: student view bar */
+.view-bar { position: sticky; top: 0; z-index: 60; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 9px 18px; background: #1A1A1A; color: #F3EDE2; font: 700 14px/1.2 'Courier Prime', monospace; border-bottom: 4px solid #B3170F; }
+.view-bar .view-tag { background: #B3170F; color: #fff; padding: 4px 8px; letter-spacing: .08em; font-family: 'Special Elite', monospace; font-weight: 400; }
+.view-bar label { margin: 0; color: #F3EDE2; font-weight: 700; }
+.view-bar select { width: auto; min-width: 170px; margin: 0; padding: 5px 8px; font: inherit; }
+.view-bar .view-note { font-weight: 400; opacity: .75; }
+.view-bar .stamp-btn { margin-left: auto; }
+@media (max-width: 700px) { .view-bar .view-note { display: none; } .view-bar .stamp-btn { margin-left: 0; } }
 </style>
 </head>
 <body>
@@ -675,7 +683,7 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
   </main>
   <div id="overlay" class="overlay" hidden></div>
   <div id="toast" class="toast" role="status" hidden></div>
-  <div id="build" class="build-tag">Version 10 Nov 20:36</div>
+  <div id="build" class="build-tag">Version 10 Nov 20:46</div>
   <noscript>Thrive City Case Files needs JavaScript turned on.</noscript>
   <script type="module">
 // ===== core.js =====
@@ -737,6 +745,8 @@ const toastEl = document.getElementById('toast');
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let me = null;
+let realMe = null; // the teacher, while she is looking through a student's eyes
+let viewList = [];
 let routing = false;
 let leaveGuard = null; // set by the case builder when there are unsaved changes
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -874,6 +884,11 @@ async function loadMe(id) {
     return renderLogin('This login isn’t set up yet. Ask your teacher.');
   }
   me = data;
+  realMe = null;
+  if (me.role === 'teacher') {
+    let vid = null; try { vid = sessionStorage.getItem('l2l-viewas'); } catch {}
+    if (vid) { await enterStudentView(vid, true); return; }
+  }
   if (!routing) {
     window.addEventListener('hashchange', route);
     window.addEventListener('beforeunload', (e) => { if (leaveGuard) { e.preventDefault(); e.returnValue = ''; } });
@@ -953,7 +968,37 @@ function renderLogin(message = '') {
   });
 }
 
+// ---------- Teacher: see the site exactly as one student sees it -------
+async function enterStudentView(id, keepPage) {
+  const teacher = realMe || me;
+  if (teacher.role !== 'teacher') return;
+  viewList = await loadStudents();
+  const s = viewList.find((x) => x.id === id) || viewList[0];
+  if (!s) { toast('Add some students first.', 'warn'); return; }
+  realMe = teacher;
+  me = { ...s, role: 'student', viewing: true };
+  try { sessionStorage.setItem('l2l-viewas', s.id); } catch {}
+  if (!routing) {
+    window.addEventListener('hashchange', route);
+    routing = true;
+  }
+  const target = keepPage && /^#\/(map|case|portfolio)/.test(location.hash) ? location.hash : '#/map';
+  if (location.hash === target) route(); else location.hash = target;
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-viewas]');
+  if (b) { e.preventDefault(); enterStudentView(b.dataset.viewas); }
+});
+function exitStudentView() {
+  try { sessionStorage.removeItem('l2l-viewas'); } catch {}
+  if (realMe) me = realMe;
+  realMe = null;
+  if (location.hash === '#/class') route(); else location.hash = '#/class';
+}
+
 async function logout() {
+  try { sessionStorage.removeItem('l2l-viewas'); } catch {}
+  realMe = null;
   leaveGuard = null;
   await sb.auth.signOut();
   me = null;
@@ -973,7 +1018,17 @@ function shell(active, body, opts = {}) {
       <span class="hud-xp">${me.xp} XP</span>
       <span class="hud-bar" aria-hidden="true"><i style="width:${intoLevel(me.xp)}%"></i></span>
     </div>`;
-  app.innerHTML = `
+  const viewing = me.viewing ? (() => {
+    const groups = [...new Set(viewList.map((x) => x.mentor_group || 'No group'))].sort();
+    return `<div class="view-bar" role="region" aria-label="Student view">
+      <span class="view-tag">STUDENT VIEW</span>
+      <label for="view-pick">Seeing the site as</label>
+      <select id="view-pick">${groups.map((g) => `<optgroup label="${esc(g)}">${viewList.filter((x) => (x.mentor_group || 'No group') === g).map((x) => `<option value="${x.id}" ${x.id === me.id ? 'selected' : ''}>${esc(x.display_name)}</option>`).join('')}</optgroup>`).join('')}</select>
+      <span class="view-note">Look only · nothing you do here changes her work</span>
+      <button class="stamp-btn small" id="view-exit">Back to teacher view</button>
+    </div>`;
+  })() : '';
+  app.innerHTML = `${viewing}
   <header class="top ${opts.wide ? 'wide' : ''}">
     <a class="brand-tag" href="#/">THRIVE CITY</a>
     <nav class="tabs" aria-label="Main">
@@ -981,12 +1036,15 @@ function shell(active, body, opts = {}) {
     </nav>
     ${hud}
     <div class="who">
-      ${isT ? `<span class="who-name">${esc(me.display_name)}</span>` : ''}
+      ${isT ? `<span class="who-name">${esc(me.display_name)}</span><button class="stamp-btn small ghost" id="view-enter" title="See the site exactly as a student sees it">Student view</button>` : ''}
       <button class="link-btn" id="logout">Log out</button>
     </div>
   </header>
   <div class="page ${opts.wide ? 'wide' : ''}">${body}</div>`;
   $('#logout').addEventListener('click', logout);
+  $('#view-enter')?.addEventListener('click', () => enterStudentView(opts.viewId || null));
+  $('#view-exit')?.addEventListener('click', exitStudentView);
+  $('#view-pick')?.addEventListener('change', (e) => enterStudentView(e.target.value, true));
 }
 
 function loadingPage(active, opts) {
@@ -1620,6 +1678,7 @@ async function teacherCrews() {
 
 // ---------- Student: survey card and crew card ------------------------------
 async function surveyCard() {
+  if (me.viewing) return '';
   try {
     const settings = await getSettings();
     if (!settings.survey_open) return '';
@@ -1664,9 +1723,19 @@ function wireSurvey(rerender) {
   });
 }
 
+// teacher in student view: build the same shape my_crew returns
+async function crewOf(student) {
+  const settings = await getSettings();
+  const { data: crews } = await sb.from('crews').select('id, name, crew_members(student_id, position)').eq('mentor_group', student.mentor_group || '').eq('term', settings.current_term);
+  const c = (crews || []).find((x) => (x.crew_members || []).some((m) => m.student_id === student.id));
+  if (!c) return null;
+  const names = Object.fromEntries((viewList || []).map((x) => [x.id, x.display_name]));
+  return { name: c.name, members: c.crew_members.sort((a, b) => a.position - b.position).map((m) => ({ name: names[m.student_id] || '?', me: m.student_id === student.id })) };
+}
+
 async function crewCard(week) {
   try {
-    const { data: crew } = await sb.rpc('my_crew');
+    const { data: crew } = me.viewing ? { data: await crewOf(me) } : await sb.rpc('my_crew');
     if (!crew?.members?.length) return '';
     const n = crew.members.length;
     const rows = crew.members.map((m, i) => ({ ...m, role: roleFor(i, n, week) }));
@@ -1709,7 +1778,7 @@ async function crewBoardHtml(c, slides, group) {
 
 async function refreshMe() {
   const { data } = await sb.from('profiles').select('*').eq('id', me.id).single();
-  if (data) me = data;
+  if (data) me = me.viewing ? { ...data, role: 'student', viewing: true } : data;
 }
 
 async function loadMySubmissions(studentId = me.id) {
@@ -1812,7 +1881,7 @@ async function studentMap(district) {
     drawString();
     window.onresize = drawString;
     wireSurvey(() => studentMap(district));
-    celebrateBonuses(subs);
+    if (!me.viewing) celebrateBonuses(subs);
   } catch (e) { errorPage('map', e); }
 }
 
@@ -1850,7 +1919,7 @@ async function studentCase(id) {
     const prompts = Array.isArray(c.prompts) && c.prompts.length ? c.prompts : DEFAULT_PROMPTS;
     const d = districtOf(c.district);
     const st = caseState(sub);
-    const editable = !isT && (!sub || sub.status === 'try_again');
+    const editable = !isT && !me.viewing && (!sub || sub.status === 'try_again');
     const checkKey = `l2l-check-${me.id}-${c.id}`;
     const passed = new Set(store(checkKey) || []);
     const checks = slides.map((s, i) => (s.type === 'check' ? i : -1)).filter((i) => i >= 0);
@@ -1973,9 +2042,13 @@ async function studentCase(id) {
           f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
           return;
         }
-        opened.add(s.id); store(lockKey, [...opened]);
-        toast('Lock cracked!');
-        sb.rpc('record_crack', { p_challenge: c.id, p_slide: s.id, p_code: val }).then(() => {});
+        opened.add(s.id);
+        if (me.viewing) toast('Right code. (Student view: not saved to her crew.)');
+        else {
+          store(lockKey, [...opened]);
+          toast('Lock cracked!');
+          sb.rpc('record_crack', { p_challenge: c.id, p_slide: s.id, p_code: val }).then(() => {});
+        }
         lockIdx.forEach((j) => {
           const w = $(`[data-lock="${j}"]`);
           if (!w) return;
@@ -2000,6 +2073,12 @@ async function studentCase(id) {
     if (isT) {
       $('#capture').innerHTML = `<section class="paper"><p class="eyebrow">EVIDENCE BOARD</p><p>${esc(c.capture_ask || 'Students upload up to 3 photos or files here.')}</p>
         <p class="eyebrow">CASE NOTES</p><ol>${prompts.map((p) => `<li>${esc(p)}</li>`).join('')}</ol></section>`;
+      return;
+    }
+    if (me.viewing && !sub) {
+      $('#capture').innerHTML = `<section class="paper"><p class="eyebrow">EVIDENCE BOARD</p>
+        <p><b>${esc(me.display_name)} hasn’t filed this case yet.</b> When she does, her photos and case notes show here.</p>
+        <p class="muted">In her own login this is where she uploads up to 3 photos or files and answers:</p><ol>${prompts.map((p) => `<li>${esc(p)}</li>`).join('')}</ol></section>`;
       return;
     }
     if (!editable) {
@@ -2163,7 +2242,8 @@ async function studentPortfolio(studentId) {
       const i = mates.findIndex((x) => x.id === who.id);
       const prev = mates[i - 1]; const next = mates[i + 1];
       nav = `<div class="folio-nav"><a class="back" href="#/class">← Class</a>
-        <span class="muted">Viewing ${esc(who.display_name)}’s portfolio, exactly as she sees it${who.mentor_group ? ` · ${esc(who.mentor_group)}` : ''}</span>
+        <span class="muted">${esc(who.display_name)}’s portfolio${who.mentor_group ? ` · ${esc(who.mentor_group)}` : ''}</span>
+        <button class="stamp-btn small" data-viewas="${who.id}">Open her student view</button>
         <span class="folio-step">${prev ? `<a class="stamp-btn small ghost" href="#/portfolio/${prev.id}">← ${esc(prev.display_name)}</a>` : ''}${next ? `<a class="stamp-btn small ghost" href="#/portfolio/${next.id}">${esc(next.display_name)} →</a>` : ''}</span></div>`;
     } else await refreshMe();
     const subs = await loadMySubmissions(who.id);
@@ -2214,7 +2294,7 @@ async function studentPortfolio(studentId) {
           <section class="exhibition"><b>◆ THRIVE Exhibition</b><span>Your best case files across the year become your Exhibition display.</span></section>
         </div>
       </div>`);
-    if (!isT) {
+    if (!isT && !me.viewing) {
       subs.forEach((s) => { if (s.reviewed_at) seen[s.id] = s.reviewed_at; });
       store(`l2l-fb-${me.id}`, seen);
     }
@@ -3121,7 +3201,7 @@ async function teacherClass() {
             <td><a href="#/portfolio/${s.id}"><b>${esc(s.display_name)}</b></a></td><td><code>${esc(s.username)}</code></td><td>${esc(s.mentor_group || '–')}</td>
             <td>${esc(rankOf(s.xp))} · L${levelOf(s.xp)}</td><td>${s.xp}</td>
             <td>${stats[s.id]?.closed || 0} closed${stats[s.id]?.waiting ? ` <span class="chip warn">${stats[s.id].waiting} waiting</span>` : ''}</td>
-            <td><a class="stamp-btn small ghost" href="#/portfolio/${s.id}">View portfolio</a> <button class="link-btn" data-reset="${s.id}" data-name="${esc(s.display_name)}">New password</button></td>
+            <td><a class="stamp-btn small ghost" href="#/portfolio/${s.id}">View portfolio</a> <button class="stamp-btn small ghost" data-viewas="${s.id}">Student view</button> <button class="link-btn" data-reset="${s.id}" data-name="${esc(s.display_name)}">New password</button></td>
           </tr>`).join('') || '<tr><td colspan="7" class="center muted">No students yet. Add some below.</td></tr>'}</tbody>
         </table></div>
       </section>
