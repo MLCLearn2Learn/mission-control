@@ -1,0 +1,1215 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mission Control · Learn to Learn</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+/* =====================================================================
+   MISSION CONTROL · Learn to Learn · Version 1 styles
+   ===================================================================== */
+
+:root {
+  --space: #0d0b2b;
+  --space-2: #17144a;
+  --panel: #1f1b5c;
+  --panel-2: #2a2575;
+  --line: #3d378f;
+  --text: #f4f2ff;
+  --muted: #b9b3e6;
+  --yellow: #ffd23f;
+  --pink: #ff5fa2;
+  --cyan: #3ae0e8;
+  --green: #4be38a;
+  --purple: #8f6bff;
+  --orange: #ff8c42;
+  --radius: 18px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --head: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 20% 0%, #2b1f6e 0%, transparent 55%),
+              radial-gradient(ellipse at 90% 30%, #3a1450 0%, transparent 50%),
+              var(--space);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.stars {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    radial-gradient(1.5px 1.5px at 10% 20%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 30% 70%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 55% 15%, #ffe9a8 50%, transparent 51%),
+    radial-gradient(1px 1px at 75% 55%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 90% 85%, #bdf6ff 50%, transparent 51%),
+    radial-gradient(1px 1px at 45% 90%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 65% 35%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 5% 60%, #ffd1e6 50%, transparent 51%);
+  background-size: 400px 400px;
+  opacity: 0.8;
+  animation: twinkle 6s ease-in-out infinite alternate;
+}
+@keyframes twinkle { from { opacity: 0.45; } to { opacity: 0.9; } }
+
+h1, h2, h3, h4, .brand { font-family: var(--head); line-height: 1.15; margin: 0 0 0.4em; }
+h1 { font-size: clamp(28px, 4vw, 40px); }
+h2 { font-size: 24px; }
+h3 { font-size: 20px; }
+p { margin: 0 0 0.8em; }
+a { color: var(--cyan); }
+a:hover { color: #9ff6fa; }
+code { background: rgba(255, 255, 255, 0.08); padding: 2px 6px; border-radius: 6px; font-size: 0.9em; }
+.muted { color: var(--muted); }
+.center { text-align: center; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ---------- Layout ---------- */
+#app { min-height: 100vh; }
+.page { max-width: 1180px; margin: 0 auto; padding: 24px 20px 80px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; margin-bottom: 32px; }
+.two-col { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 22px; align-items: start; }
+.list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+@media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ---------- Header ---------- */
+.top {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 12px 20px;
+  background: rgba(13, 11, 43, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.top .brand {
+  font-size: 22px; font-weight: 700; letter-spacing: 0.04em; text-decoration: none;
+  background: linear-gradient(90deg, var(--yellow), var(--pink));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs a {
+  color: var(--muted); text-decoration: none; font-weight: 800;
+  padding: 8px 14px; border-radius: 999px; min-height: 44px; display: inline-flex; align-items: center;
+}
+.tabs a:hover { color: var(--text); background: var(--panel); }
+.tabs a.on { color: var(--space); background: var(--yellow); }
+.who { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center; font-family: var(--head); font-weight: 700;
+  background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff;
+}
+.who-name { font-weight: 800; }
+@media (max-width: 700px) { .who-name { display: none; } .top { position: static; gap: 10px; } }
+
+/* XP HUD */
+.hud { display: flex; align-items: center; gap: 10px; min-width: 220px; flex: 1; max-width: 360px; }
+.lvl {
+  width: 52px; height: 52px; border-radius: 14px; flex: none;
+  display: grid; place-items: center; align-content: center;
+  background: linear-gradient(135deg, var(--yellow), var(--orange)); color: var(--space);
+  box-shadow: 0 0 18px rgba(255, 210, 63, 0.45);
+}
+.lvl span { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; line-height: 1; }
+.lvl b { font-family: var(--head); font-size: 24px; line-height: 1; }
+.hud-bar { flex: 1; }
+.hud-bar small { color: var(--muted); font-weight: 700; font-size: 13px; }
+.bar { height: 14px; border-radius: 999px; background: var(--space-2); border: 1px solid var(--line); overflow: hidden; }
+.bar.big { height: 22px; width: min(420px, 80vw); margin: 18px auto 8px; }
+.fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--cyan), var(--green), var(--yellow));
+  box-shadow: 0 0 12px rgba(58, 224, 232, 0.6);
+  transition: width 1.2s cubic-bezier(.2, .9, .3, 1.2);
+}
+
+/* ---------- Cards & bits ---------- */
+.card {
+  background: linear-gradient(180deg, var(--panel), #1a1650);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+}
+.card.narrow { max-width: 420px; margin-left: auto; margin-right: auto; }
+.card.mini { padding: 16px; margin: 0; }
+.hero { margin: 8px 0 22px; }
+.hero p { color: var(--muted); font-size: 18px; }
+.section-title { font-size: 18px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+
+.chip {
+  display: inline-block; font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 999px;
+  background: var(--panel-2); color: var(--text);
+}
+.chip.new { background: var(--cyan); color: var(--space); }
+.chip.wait { background: #4b4596; }
+.chip.done { background: var(--green); color: var(--space); }
+.chip.warn { background: var(--orange); color: var(--space); }
+.chip.hot { background: var(--pink); color: #fff; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.07); } }
+.xp-pill {
+  font-family: var(--head); font-weight: 700; font-size: 15px;
+  color: var(--yellow); padding: 3px 10px; border-radius: 999px; border: 2px solid var(--yellow);
+}
+.element { color: var(--pink); font-weight: 800; font-size: 14px; letter-spacing: 0.02em; }
+.mc-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: space-between; margin-bottom: 10px; }
+.mc-top .muted { margin-left: auto; font-size: 14px; }
+
+/* Mission cards */
+.mission-card {
+  position: relative; display: flex; flex-direction: column; min-height: 190px;
+  padding: 20px; border-radius: var(--radius); text-decoration: none; color: var(--text);
+  background: linear-gradient(160deg, #2b2580 0%, #1c1857 70%);
+  border: 2px solid var(--line);
+  box-shadow: var(--shadow);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  animation: rise .5s ease both; animation-delay: calc(var(--i, 0) * 60ms);
+  overflow: hidden;
+}
+.mission-card::after {
+  content: ''; position: absolute; width: 140px; height: 140px; right: -40px; bottom: -50px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--purple), transparent 70%); opacity: .45;
+}
+.mission-card:hover, .mission-card:focus-visible {
+  transform: translateY(-4px) rotate(-0.4deg); border-color: var(--cyan); color: var(--text);
+  box-shadow: 0 16px 36px rgba(58, 224, 232, 0.22);
+}
+.mission-card h3 { font-size: 22px; }
+.mission-card .go { margin-top: auto; font-weight: 800; color: var(--cyan); position: relative; z-index: 1; }
+.mission-card.is-approved { opacity: .82; }
+.mission-card.is-try_again { border-color: var(--orange); }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.mission-head { margin-bottom: 18px; }
+.brief { font-size: 18px; max-width: 760px; }
+.back { display: inline-block; margin-bottom: 14px; font-weight: 800; text-decoration: none; }
+.q { font-size: 17px; color: var(--yellow); margin-top: 14px; }
+.a { white-space: pre-wrap; }
+details summary { cursor: pointer; font-weight: 800; color: var(--cyan); padding: 6px 0; min-height: 44px; display: flex; align-items: center; list-style: none; }
+details summary::-webkit-details-marker { display: none; }
+details summary::before { content: '▸'; margin-right: 8px; transition: transform .2s ease; }
+details[open] summary::before { transform: rotate(90deg); }
+
+/* Feedback */
+.feedback {
+  border-radius: var(--radius); padding: 18px; margin-bottom: 18px;
+  background: rgba(75, 227, 138, 0.12); border: 2px solid var(--green);
+}
+.feedback.try_again { background: rgba(255, 140, 66, 0.12); border-color: var(--orange); }
+.feedback.submitted { background: rgba(143, 107, 255, 0.12); border-color: var(--purple); }
+.sticker {
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  font-family: var(--head); font-weight: 700; font-size: 18px;
+  padding: 6px 14px 6px 8px; border-radius: 999px; background: var(--yellow); color: var(--space);
+  transform: rotate(-2deg); box-shadow: 0 4px 0 #c49a00;
+}
+.sticker span { font-size: 24px; }
+.bonus { color: var(--yellow); font-weight: 800; }
+
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 26px; }
+.stat {
+  border-radius: var(--radius); padding: 16px 18px; background: var(--panel); border: 1px solid var(--line);
+}
+.stat b { display: block; font-family: var(--head); font-size: 34px; color: var(--yellow); line-height: 1.1; }
+.stat span { color: var(--muted); font-weight: 700; font-size: 14px; }
+
+/* Timeline */
+.timeline { list-style: none; margin: 0; padding: 0 0 0 28px; position: relative; }
+.timeline::before { content: ''; position: absolute; left: 9px; top: 6px; bottom: 6px; width: 3px; border-radius: 3px;
+  background: linear-gradient(var(--cyan), var(--purple), var(--pink)); }
+.entry { position: relative; }
+.entry .dot { position: absolute; left: -27px; top: 26px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--yellow); box-shadow: 0 0 0 4px var(--space), 0 0 14px var(--yellow); }
+
+/* ---------- Forms ---------- */
+label { display: block; font-weight: 800; margin: 14px 0 6px; }
+label.inline { display: inline-flex; flex-direction: column; margin: 0; font-size: 14px; gap: 4px; }
+input, textarea, select {
+  width: 100%; font: inherit; color: var(--text);
+  background: var(--space-2); border: 2px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; min-height: 48px;
+}
+textarea { resize: vertical; line-height: 1.5; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(58, 224, 232, .25); }
+::placeholder { color: #8d86c6; }
+.error { color: #ffb3c9; font-weight: 700; margin-top: 12px; }
+.check { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--yellow); min-height: 44px; }
+.check input { width: 22px; height: 22px; min-height: 0; accent-color: var(--yellow); }
+
+.stickers { border: 0; padding: 0; margin: 14px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.stickers legend { font-weight: 800; margin-bottom: 6px; }
+.sticker-pick { margin: 0; }
+.sticker-pick input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.sticker-pick span {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 6px 12px; border-radius: 999px;
+  border: 2px solid var(--line); cursor: pointer; font-weight: 700; font-size: 15px; user-select: none;
+}
+.sticker-pick input:checked + span { background: var(--yellow); color: var(--space); border-color: var(--yellow); }
+.sticker-pick input:focus-visible + span { box-shadow: 0 0 0 3px rgba(58, 224, 232, .5); }
+
+/* ---------- Buttons ---------- */
+.btn {
+  font: inherit; font-weight: 800; cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 10px 18px; border-radius: 12px;
+  background: var(--panel-2); color: var(--text); border: 2px solid var(--line);
+  transition: transform .1s ease, filter .15s ease;
+}
+.btn:hover { filter: brightness(1.15); color: var(--text); }
+.btn:active { transform: translateY(2px); }
+.btn:disabled { opacity: .55; cursor: wait; }
+.btn.primary { background: linear-gradient(180deg, #ffe066, var(--yellow)); color: var(--space); border-color: #c49a00; box-shadow: 0 4px 0 #c49a00; }
+.btn.primary:active { box-shadow: 0 1px 0 #c49a00; }
+.btn.warn { background: var(--orange); color: var(--space); border-color: #c4621f; }
+.btn.ghost { background: transparent; }
+.btn.small { min-height: 40px; padding: 6px 12px; font-size: 15px; }
+.btn.big { width: 100%; font-size: 20px; padding: 14px 20px; margin-top: 18px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.controls { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
+.controls select { min-width: 180px; }
+.seg { display: inline-flex; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; }
+.seg button { font: inherit; font-weight: 800; color: var(--muted); background: transparent; border: 0; padding: 10px 16px; min-height: 44px; cursor: pointer; }
+.seg button.on { background: var(--yellow); color: var(--space); }
+
+/* ---------- Teacher inbox & table ---------- */
+.review-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.answers { border-left: 3px solid var(--purple); padding-left: 14px; margin: 6px 0 12px; }
+.review.leaving { transition: opacity .4s ease, transform .4s ease; opacity: 0; transform: translateX(40px); }
+.hidden-ch { opacity: .6; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 640px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+
+/* Login cards */
+.login-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-top: 12px; }
+.login-card { background: #fff; color: #17144a; border-radius: 14px; padding: 16px; border: 2px dashed #8f6bff; break-inside: avoid; }
+.login-card p { margin: 0 0 6px; }
+.login-card span { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #555; }
+.login-card b { font-size: 17px; word-break: break-all; }
+.lc-brand { font-family: var(--head); font-weight: 700; color: #6b45d8; letter-spacing: .06em; }
+.lc-name { font-family: var(--head); font-size: 20px; font-weight: 700; }
+.lc-note { font-size: 12px; color: #555; margin-top: 8px !important; }
+
+/* ---------- Login screen ---------- */
+.login { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 20px; text-align: center; }
+.login form { text-align: left; width: 100%; }
+.brand.big {
+  font-size: clamp(36px, 8vw, 64px); letter-spacing: .05em; margin: 18px 0 4px;
+  background: linear-gradient(90deg, var(--yellow), var(--pink), var(--cyan));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.tag { color: var(--muted); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 24px; }
+.planet {
+  width: 110px; height: 110px; border-radius: 50%; position: relative;
+  background: radial-gradient(circle at 30% 30%, #ffb3d6, var(--pink) 45%, var(--purple) 100%);
+  box-shadow: 0 0 60px rgba(255, 95, 162, .55);
+  animation: float 5s ease-in-out infinite;
+}
+.planet .ring { position: absolute; inset: 42px -34px; border: 6px solid var(--yellow); border-radius: 50%; transform: rotate(-18deg); opacity: .9; }
+@keyframes float { 50% { transform: translateY(-12px); } }
+
+/* ---------- Loading, toast ---------- */
+.loading { display: grid; place-items: center; gap: 12px; padding: 80px 0; color: var(--muted); }
+.spinner { width: 46px; height: 46px; border-radius: 50%; border: 5px solid var(--line); border-top-color: var(--yellow); animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 40;
+  padding: 12px 20px; border-radius: 14px; font-weight: 800; box-shadow: var(--shadow);
+  background: var(--green); color: var(--space); max-width: 90vw;
+}
+.toast.warn { background: var(--orange); }
+
+/* ---------- Celebration overlay ---------- */
+.overlay {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; overflow: hidden;
+  background: rgba(8, 6, 30, 0.82); backdrop-filter: blur(6px);
+}
+.overlay[hidden] { display: none; }
+.celebrate {
+  position: relative; z-index: 2; text-align: center; padding: 34px 28px; width: min(480px, 92vw);
+  border-radius: 26px; background: linear-gradient(180deg, #2b2580, #1a1650); border: 2px solid var(--yellow);
+  box-shadow: 0 0 80px rgba(255, 210, 63, .35);
+  animation: pop .55s cubic-bezier(.2, 1.4, .4, 1) both;
+}
+.cel-small { color: var(--muted); font-weight: 800; margin: 0; }
+.xp-burst {
+  font-family: var(--head); font-weight: 700; font-size: clamp(56px, 14vw, 96px); line-height: 1.1; margin: 6px 0;
+  background: linear-gradient(90deg, var(--yellow), var(--orange), var(--pink));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: burst .9s cubic-bezier(.2, 1.6, .4, 1) .15s both;
+  filter: drop-shadow(0 0 22px rgba(255, 210, 63, .55));
+}
+.level-up {
+  font-family: var(--head); font-weight: 700; font-size: 40px; color: var(--cyan); margin-top: 12px;
+  animation: pop .6s cubic-bezier(.2, 1.6, .4, 1) both; text-shadow: 0 0 24px rgba(58, 224, 232, .8);
+}
+.level-up span { display: block; font-size: 18px; color: var(--text); }
+@keyframes pop { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
+@keyframes burst { 0% { opacity: 0; transform: scale(.2) rotate(-8deg); } 70% { transform: scale(1.12) rotate(2deg); } 100% { opacity: 1; transform: none; } }
+.confetti {
+  position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 3px; z-index: 1;
+  animation: fall linear both;
+}
+@keyframes fall { to { transform: translateY(110vh) rotate(var(--r)); } }
+
+/* ---------- Motion & print ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+@media print {
+  body { background: #fff; }
+  .stars, .top, .toast, .overlay { display: none !important; }
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; left: 0; top: 0; width: 100%; background: none; border: 0; box-shadow: none; padding: 0; }
+  .no-print { display: none !important; }
+  .login-cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .login-card { border-color: #333; }
+}
+
+</style>
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+  <main id="app" aria-live="polite">
+    <div class="loading"><div class="spinner" aria-hidden="true"></div><p>Powering up…</p></div>
+  </main>
+  <div id="overlay" class="overlay" hidden></div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript>Mission Control needs JavaScript turned on.</noscript>
+  <script type="module">
+// =====================================================================
+// MISSION CONTROL · Learn to Learn · Version 1
+// The whole website's logic. You shouldn't need to edit this.
+// =====================================================================
+
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.89.0/+esm';
+
+// Your Supabase project (these two values are safe to be public)
+const SUPABASE_URL = 'https://sunlyytobnreuphriedl.supabase.co';
+const SUPABASE_KEY = 'sb_publishable__QQwNh8sX9cl242ZRioYiA_GSFbnPEN';
+
+// ---------- Settings you might tweak later ----------------------------
+const STUDENT_DOMAIN = 'students.l2l.invalid';
+const XP_PER_LEVEL = 100;
+const STRONG_BONUS = 25;
+const DEFAULT_PROMPTS = [
+  'What did I try?',
+  'What was hard?',
+  'What did I figure out?',
+  'What will I do next?',
+];
+const STICKERS = [
+  { id: 'brilliant', label: 'Brilliant thinking', icon: '💡' },
+  { id: 'brave', label: 'Brave try', icon: '🦁' },
+  { id: 'deep', label: 'Deep diver', icon: '🌊' },
+  { id: 'persist', label: 'Never gave up', icon: '🧗' },
+  { id: 'reflect', label: 'Super reflective', icon: '🪞' },
+  { id: 'kind', label: 'Great teammate', icon: '🤝' },
+  { id: 'growth', label: 'Big growth', icon: '🌱' },
+  { id: 'keep', label: 'Keep going', icon: '🚀' },
+];
+const ELEMENT_SUGGESTIONS = [
+  'Agency: Being systematic', 'Agency: Being reflective', 'Agency: Acting with autonomy',
+  'Agency: Demonstrating drive', 'Agency: Acting with courage', 'Agency: Being persistent',
+  'Agency: Generating feedback loops',
+  'Collaboration: Engaging in dialogue', 'Collaboration: Acting responsibly',
+  'Collaboration: Navigating diverse interests', 'Collaboration: Acting with empathy',
+  'Collaboration: Taking responsibility for supporting others',
+  'Quality Thinking: Probing and evaluating', 'Quality Thinking: Striving for depth',
+  'Quality Thinking: Being open to the new', 'Quality Thinking: Acting creatively',
+];
+
+// ---------- Setup -----------------------------------------------------
+const app = document.getElementById('app');
+const overlay = document.getElementById('overlay');
+const toastEl = document.getElementById('toast');
+
+const configured = SUPABASE_URL.startsWith('https://') && !SUPABASE_KEY.startsWith('PASTE');
+const sb = configured ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+let me = null;              // the logged-in person's profile
+let routing = false;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- Small helpers ---------------------------------------------
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const levelOf = (xp) => Math.floor((xp || 0) / XP_PER_LEVEL) + 1;
+const intoLevel = (xp) => (xp || 0) % XP_PER_LEVEL;
+const fmtDate = (d) => new Date(d).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+const safeUrl = (u) => (/^https?:\/\//i.test(u || '') ? u : null);
+const stickerOf = (id) => STICKERS.find((s) => s.id === id);
+
+function store(key, value) {
+  try {
+    if (value === undefined) return JSON.parse(localStorage.getItem(key) || 'null');
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch { /* storage blocked: ignore */ }
+  return null;
+}
+
+function toast(msg, kind = 'ok') {
+  toastEl.textContent = msg;
+  toastEl.className = `toast ${kind}`;
+  toastEl.hidden = false;
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => { toastEl.hidden = true; }, 3500);
+}
+
+function friendlyError(err) {
+  const m = err?.message || String(err);
+  if (/Invalid login/i.test(m)) return 'That username or password doesn’t match. Check your login card.';
+  if (/Failed to fetch|NetworkError/i.test(m)) return 'Can’t reach Mission Control. Check your internet connection.';
+  if (/duplicate key/i.test(m)) return 'That’s already been saved.';
+  return m;
+}
+
+async function fetchAll(build) {
+  const out = [];
+  const size = 1000;
+  for (let from = 0; ; from += size) {
+    const { data, error } = await build().range(from, from + size - 1);
+    if (error) throw error;
+    out.push(...data);
+    if (data.length < size) return out;
+  }
+}
+
+async function callFunction(body) {
+  const { data, error } = await sb.functions.invoke('manage-students', { body });
+  if (error) {
+    let msg = error.message;
+    try { const j = await error.context.json(); msg = j.error || msg; } catch { /* keep msg */ }
+    throw new Error(msg);
+  }
+  return data;
+}
+
+// ---------- Start up --------------------------------------------------
+async function boot() {
+  if (!configured) {
+    app.innerHTML = `<section class="card narrow center">
+      <h1 class="brand">Almost there</h1>
+      <p>Open <b>config.js</b> and paste in your Supabase project URL and publishable key.</p>
+    </section>`;
+    return;
+  }
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return renderLogin();
+  await loadMe(session.user.id);
+}
+
+async function loadMe(uid) {
+  const { data, error } = await sb.from('profiles').select('*').eq('id', uid).maybeSingle();
+  if (error || !data) {
+    await sb.auth.signOut();
+    return renderLogin('This login isn’t set up yet. Ask your teacher.');
+  }
+  me = data;
+  if (!routing) {
+    window.addEventListener('hashchange', route);
+    routing = true;
+  }
+  route();
+}
+
+function route() {
+  if (!me) return;
+  const [view, id] = location.hash.replace(/^#\/?/, '').split('/');
+  if (me.role === 'teacher') {
+    const views = { inbox: teacherInbox, challenges: teacherChallenges, class: teacherClass, teachers: teacherTeachers };
+    (views[view] || teacherInbox)(id);
+  } else {
+    const views = { board: studentBoard, mission: studentMission, portfolio: studentPortfolio };
+    (views[view] || studentBoard)(id);
+  }
+}
+
+// ---------- Login -----------------------------------------------------
+function renderLogin(message = '') {
+  me = null;
+  app.innerHTML = `
+  <section class="login">
+    <div class="planet" aria-hidden="true"><span class="ring"></span></div>
+    <h1 class="brand big">MISSION CONTROL</h1>
+    <p class="tag">Learn to Learn · Year 7</p>
+    <form class="card narrow" id="login-form">
+      <label for="u">Username</label>
+      <input id="u" name="u" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="e.g. amelia.k">
+      <label for="p">Password</label>
+      <input id="p" name="p" type="password" autocomplete="current-password" required placeholder="e.g. comet-maple-42">
+      <p class="error" id="login-error" ${message ? '' : 'hidden'}>${esc(message)}</p>
+      <button class="btn primary big" type="submit">Launch 🚀</button>
+    </form>
+  </section>`;
+  $('#login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.submitter || $('#login-form button');
+    const err = $('#login-error');
+    const raw = $('#u').value.trim().toLowerCase();
+    const email = raw.includes('@') ? raw : `${raw}@${STUDENT_DOMAIN}`;
+    btn.disabled = true;
+    btn.textContent = 'Launching…';
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: $('#p').value.trim() });
+    if (error) {
+      err.textContent = friendlyError(error);
+      err.hidden = false;
+      btn.disabled = false;
+      btn.textContent = 'Launch 🚀';
+      return;
+    }
+    location.hash = '';
+    await loadMe(data.user.id);
+  });
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  me = null;
+  location.hash = '';
+  renderLogin();
+}
+
+// ---------- Shared page frame -----------------------------------------
+function shell(active, body) {
+  const isT = me.role === 'teacher';
+  const tabs = isT
+    ? [['inbox', 'Inbox'], ['challenges', 'Challenges'], ['class', 'Class'], ...(me.is_admin ? [['teachers', 'Teachers']] : [])]
+    : [['board', 'Missions'], ['portfolio', 'My Portfolio']];
+  const xpBlock = isT ? '' : `
+    <div class="hud" title="${me.xp} XP">
+      <div class="lvl"><span>LVL</span><b id="hud-level">${levelOf(me.xp)}</b></div>
+      <div class="hud-bar">
+        <div class="bar"><div class="fill" id="hud-fill" style="width:${intoLevel(me.xp)}%"></div></div>
+        <small id="hud-xp">${intoLevel(me.xp)} / ${XP_PER_LEVEL} XP to level ${levelOf(me.xp) + 1}</small>
+      </div>
+    </div>`;
+  app.innerHTML = `
+  <header class="top">
+    <a class="brand" href="#/">MISSION CONTROL</a>
+    <nav class="tabs" aria-label="Main">
+      ${tabs.map(([k, l]) => `<a href="#/${k}" class="${k === active ? 'on' : ''}" ${k === active ? 'aria-current="page"' : ''}>${l}</a>`).join('')}
+    </nav>
+    ${xpBlock}
+    <div class="who">
+      <span class="avatar" aria-hidden="true">${esc((me.display_name || '?')[0].toUpperCase())}</span>
+      <span class="who-name">${esc(me.display_name)}</span>
+      <button class="btn ghost small" id="logout">Log out</button>
+    </div>
+  </header>
+  <div class="page">${body}</div>`;
+  $('#logout').addEventListener('click', logout);
+}
+
+function loadingPage(active) {
+  shell(active, '<div class="loading"><div class="spinner" aria-hidden="true"></div></div>');
+}
+
+function errorPage(active, err) {
+  shell(active, `<section class="card"><h2>Houston, we have a problem</h2><p>${esc(friendlyError(err))}</p>
+  <button class="btn" onclick="location.reload()">Try again</button></section>`);
+}
+
+// =====================================================================
+// STUDENT SIDE
+// =====================================================================
+
+async function loadMySubmissions() {
+  const { data, error } = await sb.from('submissions')
+    .select('*, challenge:challenges(id, title, element, prompts, xp)')
+    .eq('student_id', me.id)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+async function refreshMe() {
+  const { data } = await sb.from('profiles').select('*').eq('id', me.id).single();
+  if (data) me = data;
+}
+
+function statusChip(sub) {
+  if (!sub) return '<span class="chip new">New</span>';
+  if (sub.status === 'try_again') return '<span class="chip warn">Try again</span>';
+  if (sub.status === 'approved') return '<span class="chip done">Complete ✓</span>';
+  return '<span class="chip wait">With teacher</span>';
+}
+
+async function studentBoard() {
+  loadingPage('board');
+  try {
+    await refreshMe();
+    const [{ data: challenges, error }, subs] = await Promise.all([
+      sb.from('challenges').select('*').eq('active', true).order('created_at', { ascending: false }),
+      loadMySubmissions(),
+    ]);
+    if (error) throw error;
+    const byChallenge = Object.fromEntries(subs.map((s) => [s.challenge_id, s]));
+    const open = challenges.filter((c) => !byChallenge[c.id] || byChallenge[c.id].status === 'try_again');
+    const done = challenges.filter((c) => byChallenge[c.id] && byChallenge[c.id].status !== 'try_again');
+
+    const card = (c, i) => {
+      const s = byChallenge[c.id];
+      return `<a class="mission-card ${s ? 'is-' + s.status : ''}" href="#/mission/${c.id}" style="--i:${i}">
+        <div class="mc-top">${statusChip(s)}<span class="xp-pill">+${c.xp} XP</span></div>
+        <h3>${esc(c.title)}</h3>
+        ${c.element ? `<p class="element">${esc(c.element)}</p>` : ''}
+        <span class="go">${s?.status === 'try_again' ? 'Improve it →' : s ? 'View →' : 'Accept mission →'}</span>
+      </a>`;
+    };
+
+    shell('board', `
+      <section class="hero">
+        <h1>Hey ${esc(me.display_name)}! 👋</h1>
+        <p>${open.length ? `You have <b>${open.length}</b> mission${open.length === 1 ? '' : 's'} waiting.` : 'All missions launched. Legend!'}</p>
+      </section>
+      ${open.length ? `<h2 class="section-title">Ready for launch</h2>
+        <div class="grid">${open.map(card).join('')}</div>` : ''}
+      ${done.length ? `<h2 class="section-title">Launched</h2>
+        <div class="grid">${done.map(card).join('')}</div>` : ''}
+      ${!challenges.length ? '<section class="card center"><p>No missions yet. Check back soon!</p></section>' : ''}
+    `);
+    celebrateBonuses(subs);
+  } catch (e) { errorPage('board', e); }
+}
+
+async function studentMission(id) {
+  loadingPage('board');
+  try {
+    const [{ data: c, error }, { data: sub }] = await Promise.all([
+      sb.from('challenges').select('*').eq('id', id).maybeSingle(),
+      sb.from('submissions').select('*').eq('challenge_id', id).eq('student_id', me.id).maybeSingle(),
+    ]);
+    if (error) throw error;
+    if (!c) { location.hash = '#/board'; return; }
+
+    const prompts = Array.isArray(c.prompts) && c.prompts.length ? c.prompts : DEFAULT_PROMPTS;
+    const editable = !sub || sub.status === 'try_again';
+    const answers = sub?.answers || [];
+
+    const feedback = sub && (sub.feedback || sub.sticker) ? feedbackCard(sub) : '';
+    const body = editable ? `
+      <form id="mission-form" class="card">
+        ${prompts.map((p, i) => `
+          <label for="a${i}">${esc(p)}</label>
+          <textarea id="a${i}" rows="4" maxlength="2000" required>${esc(answers[i] || '')}</textarea>`).join('')}
+        <label for="link">Link to your evidence <span class="muted">(optional)</span></label>
+        <input id="link" type="url" placeholder="https://…" value="${esc(sub?.link || '')}">
+        <button class="btn primary big" type="submit">${sub ? 'Resubmit' : 'Submit'} for +${c.xp} XP</button>
+      </form>` : `
+      <section class="card">
+        ${prompts.map((p, i) => `<h3 class="q">${esc(p)}</h3><p class="a">${esc(answers[i] || '')}</p>`).join('')}
+        ${safeUrl(sub.link) ? `<p><a href="${esc(sub.link)}" target="_blank" rel="noopener noreferrer">Open my evidence ↗</a></p>` : ''}
+        <p class="muted">${sub.status === 'approved' ? 'Mission complete.' : 'Waiting for your teacher to read it.'}</p>
+      </section>`;
+
+    shell('board', `
+      <a class="back" href="#/board">← Missions</a>
+      <section class="mission-head">
+        <div class="mc-top">${statusChip(sub)}<span class="xp-pill">+${c.xp} XP</span></div>
+        <h1>${esc(c.title)}</h1>
+        ${c.element ? `<p class="element">${esc(c.element)}</p>` : ''}
+        ${c.brief ? `<p class="brief">${esc(c.brief)}</p>` : ''}
+      </section>
+      ${feedback}
+      ${body}`);
+
+    if (!editable) return;
+    $('#mission-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('#mission-form button[type=submit]');
+      const vals = prompts.map((_, i) => $(`#a${i}`).value.trim());
+      if (vals.some((v) => v.length < 3)) return toast('Answer every question first.', 'warn');
+      const link = $('#link').value.trim();
+      if (link && !safeUrl(link)) return toast('Links need to start with https://', 'warn');
+      btn.disabled = true;
+      btn.textContent = 'Launching…';
+      const before = me.xp;
+      const payload = { answers: vals, link: link || null };
+      const { error: err } = sub
+        ? await sb.from('submissions').update({ ...payload, status: 'submitted' }).eq('id', sub.id)
+        : await sb.from('submissions').insert({ ...payload, challenge_id: c.id, student_id: me.id });
+      if (err) {
+        btn.disabled = false;
+        btn.textContent = `${sub ? 'Resubmit' : 'Submit'} for +${c.xp} XP`;
+        return toast(friendlyError(err), 'warn');
+      }
+      await refreshMe();
+      await celebrate(c.xp, before, Math.max(me.xp, before + c.xp), `“${c.title}” launched!`);
+      location.hash = '#/portfolio';
+    });
+  } catch (e) { errorPage('board', e); }
+}
+
+function feedbackCard(sub) {
+  const st = stickerOf(sub.sticker);
+  return `<section class="feedback ${sub.status}">
+    ${st ? `<div class="sticker"><span>${st.icon}</span>${esc(st.label)}</div>` : ''}
+    ${sub.feedback ? `<p>${esc(sub.feedback)}</p>` : ''}
+    ${sub.bonus ? `<p class="bonus">⭐ +${sub.bonus} bonus XP for a strong reflection</p>` : ''}
+    ${sub.status === 'try_again' ? '<p class="muted">Your teacher has sent this back. Improve it and resubmit to get your XP.</p>' : ''}
+  </section>`;
+}
+
+async function studentPortfolio() {
+  loadingPage('portfolio');
+  try {
+    await refreshMe();
+    const subs = await loadMySubmissions();
+    const complete = subs.filter((s) => s.status === 'approved').length;
+    const stickers = subs.filter((s) => s.sticker).length;
+    const seen = store(`l2l-fb-${me.id}`) || {};
+
+    shell('portfolio', `
+      <section class="hero">
+        <h1>My Portfolio</h1>
+        <p>Everything you’ve tried, figured out and grown in this year.</p>
+      </section>
+      <div class="stats">
+        <div class="stat"><b>${me.xp}</b><span>Total XP</span></div>
+        <div class="stat"><b>${levelOf(me.xp)}</b><span>Level</span></div>
+        <div class="stat"><b>${subs.length}</b><span>Missions launched</span></div>
+        <div class="stat"><b>${complete}</b><span>Complete</span></div>
+        <div class="stat"><b>${stickers}</b><span>Stickers</span></div>
+      </div>
+      ${subs.length ? `<ol class="timeline">${subs.map((s) => {
+        const isNew = s.reviewed_at && seen[s.id] !== s.reviewed_at;
+        const prompts = s.challenge?.prompts || DEFAULT_PROMPTS;
+        return `<li class="entry">
+          <div class="dot" aria-hidden="true"></div>
+          <article class="card">
+            <div class="mc-top">${statusChip(s)}${isNew ? '<span class="chip hot">New feedback!</span>' : ''}
+              <span class="muted">${fmtDate(s.created_at)} · +${s.xp_awarded + s.bonus} XP</span></div>
+            <h3><a href="#/mission/${s.challenge_id}">${esc(s.challenge?.title || 'Mission')}</a></h3>
+            ${s.challenge?.element ? `<p class="element">${esc(s.challenge.element)}</p>` : ''}
+            <details><summary>My reflection</summary>
+              ${prompts.map((p, i) => `<h4 class="q">${esc(p)}</h4><p class="a">${esc(s.answers?.[i] || '')}</p>`).join('')}
+              ${safeUrl(s.link) ? `<p><a href="${esc(s.link)}" target="_blank" rel="noopener noreferrer">My evidence ↗</a></p>` : ''}
+            </details>
+            ${s.feedback || s.sticker ? feedbackCard(s) : ''}
+          </article>
+        </li>`;
+      }).join('')}</ol>` : '<section class="card center"><p>Your portfolio fills up as you complete missions. <a href="#/board">Pick your first one →</a></p></section>'}
+    `);
+    subs.forEach((s) => { if (s.reviewed_at) seen[s.id] = s.reviewed_at; });
+    store(`l2l-fb-${me.id}`, seen);
+  } catch (e) { errorPage('portfolio', e); }
+}
+
+// ---------- Celebrations ----------------------------------------------
+function confetti(n = 70) {
+  if (reduceMotion) return '';
+  const colours = ['#ffd23f', '#ff5fa2', '#3ae0e8', '#4be38a', '#8f6bff', '#ff8c42'];
+  let html = '';
+  for (let i = 0; i < n; i++) {
+    const left = Math.random() * 100;
+    const delay = Math.random() * 0.6;
+    const dur = 1.8 + Math.random() * 1.6;
+    const rot = Math.floor(Math.random() * 720);
+    const c = colours[i % colours.length];
+    html += `<i class="confetti" style="left:${left}%;background:${c};animation-delay:${delay}s;animation-duration:${dur}s;--r:${rot}deg"></i>`;
+  }
+  return html;
+}
+
+function celebrate(gained, before, after, title) {
+  return new Promise((resolve) => {
+    const levelUp = levelOf(after) > levelOf(before);
+    overlay.innerHTML = `
+      ${confetti()}
+      <div class="celebrate" role="dialog" aria-modal="true" aria-labelledby="cel-title">
+        <p class="cel-small" id="cel-title">${esc(title)}</p>
+        <div class="xp-burst">+${gained} XP</div>
+        <div class="bar big"><div class="fill" id="cel-fill" style="width:${levelUp ? 0 : intoLevel(before)}%"></div></div>
+        <p class="cel-small" id="cel-level">Level ${levelOf(before)}</p>
+        ${levelUp ? `<div class="level-up" id="lvl-up" hidden>LEVEL UP!<span>You’re now level ${levelOf(after)}</span></div>` : ''}
+        <button class="btn primary big" id="cel-ok">Awesome!</button>
+      </div>`;
+    overlay.hidden = false;
+    requestAnimationFrame(() => setTimeout(() => {
+      $('#cel-fill').style.width = `${levelUp ? intoLevel(after) || 100 : intoLevel(after)}%`;
+      if (levelUp) {
+        setTimeout(() => {
+          $('#lvl-up').hidden = false;
+          $('#cel-level').textContent = `Level ${levelOf(after)}`;
+        }, 700);
+      }
+    }, 300));
+    $('#cel-ok').focus();
+    $('#cel-ok').addEventListener('click', () => {
+      overlay.hidden = true;
+      overlay.innerHTML = '';
+      resolve();
+    });
+  });
+}
+
+function celebrateBonuses(subs) {
+  const key = `l2l-bonus-${me.id}`;
+  const seen = store(key) || [];
+  const fresh = subs.filter((s) => s.bonus > 0 && !seen.includes(s.id));
+  if (!fresh.length) return;
+  const total = fresh.reduce((a, s) => a + s.bonus, 0);
+  store(key, [...seen, ...fresh.map((s) => s.id)]);
+  const names = fresh.map((s) => s.challenge?.title).filter(Boolean).join(', ');
+  celebrate(total, me.xp - total, me.xp, `⭐ Strong reflection bonus: ${names}`);
+}
+
+// =====================================================================
+// TEACHER SIDE
+// =====================================================================
+
+async function loadStudents() {
+  return fetchAll(() => sb.from('profiles').select('*').eq('role', 'student').order('display_name'));
+}
+
+function groupsOf(students) {
+  return [...new Set(students.map((s) => s.mentor_group).filter(Boolean))].sort();
+}
+
+function groupSelect(groups, current, id = 'group-filter') {
+  return `<label class="inline" for="${id}">Mentor group
+    <select id="${id}">
+      <option value="">All groups</option>
+      ${groups.map((g) => `<option ${g === current ? 'selected' : ''}>${esc(g)}</option>`).join('')}
+    </select></label>`;
+}
+
+// ---------- Inbox -----------------------------------------------------
+async function teacherInbox() {
+  loadingPage('inbox');
+  try {
+    const filter = store('l2l-t-group') || '';
+    const mode = store('l2l-t-mode') || 'submitted';
+    const students = await loadStudents();
+    const subs = await fetchAll(() => {
+      let q = sb.from('submissions')
+        .select('*, student:profiles!submissions_student_id_fkey(display_name, mentor_group, username), challenge:challenges(title, prompts, xp)')
+        .order('updated_at', { ascending: mode === 'submitted' });
+      q = mode === 'submitted' ? q.eq('status', 'submitted') : q.neq('status', 'submitted');
+      return q;
+    });
+    const list = subs.filter((s) => !filter || s.student?.mentor_group === filter);
+    const shown = mode === 'submitted' ? list : list.slice(0, 100);
+
+    shell('inbox', `
+      <section class="hero row">
+        <div><h1>Inbox</h1><p>${mode === 'submitted' ? `<b>${list.length}</b> reflection${list.length === 1 ? '' : 's'} waiting for you.` : 'Reflections you’ve already reviewed.'}</p></div>
+        <div class="controls">
+          ${groupSelect(groupsOf(students), filter)}
+          <div class="seg" role="group" aria-label="Show">
+            <button class="${mode === 'submitted' ? 'on' : ''}" data-mode="submitted">Waiting</button>
+            <button class="${mode !== 'submitted' ? 'on' : ''}" data-mode="reviewed">Reviewed</button>
+          </div>
+        </div>
+      </section>
+      <div class="inbox">${shown.map(reviewCard).join('') || '<section class="card center"><p>Nothing here. Inbox zero! 🎉</p></section>'}</div>
+    `);
+
+    $('#group-filter').addEventListener('change', (e) => { store('l2l-t-group', e.target.value); teacherInbox(); });
+    $$('.seg button').forEach((b) => b.addEventListener('click', () => { store('l2l-t-mode', b.dataset.mode); teacherInbox(); }));
+    $$('.review').forEach(wireReview);
+  } catch (e) { errorPage('inbox', e); }
+}
+
+function reviewCard(s) {
+  const prompts = s.challenge?.prompts || DEFAULT_PROMPTS;
+  return `<article class="card review" data-id="${s.id}">
+    <div class="review-head">
+      <div><h3>${esc(s.student?.display_name)} <span class="muted">· ${esc(s.student?.mentor_group || 'No group')}</span></h3>
+      <p class="element">${esc(s.challenge?.title)} · ${fmtDate(s.updated_at)}${s.status !== 'submitted' ? ` · ${s.status === 'approved' ? 'Approved' : 'Sent back'}` : ''}</p></div>
+      <span class="xp-pill">+${s.xp_awarded} XP</span>
+    </div>
+    <div class="answers">
+      ${prompts.map((p, i) => `<h4 class="q">${esc(p)}</h4><p class="a">${esc(s.answers?.[i] || '')}</p>`).join('')}
+      ${safeUrl(s.link) ? `<p><a href="${esc(s.link)}" target="_blank" rel="noopener noreferrer">Open evidence ↗</a></p>` : ''}
+    </div>
+    <label for="fb-${s.id}">Feedback</label>
+    <textarea id="fb-${s.id}" rows="3" maxlength="2000" placeholder="What did she do well? What's one next step?">${esc(s.feedback || '')}</textarea>
+    <fieldset class="stickers"><legend>Sticker</legend>
+      ${STICKERS.map((st) => `<label class="sticker-pick"><input type="radio" name="st-${s.id}" value="${st.id}" ${s.sticker === st.id ? 'checked' : ''}><span>${st.icon} ${esc(st.label)}</span></label>`).join('')}
+    </fieldset>
+    <label class="check"><input type="checkbox" class="strong" ${s.bonus ? 'checked' : ''}> ⭐ Strong reflection (+${STRONG_BONUS} bonus XP)</label>
+    <div class="actions">
+      <button class="btn primary" data-act="approved">Approve</button>
+      <button class="btn warn" data-act="try_again">Try again</button>
+    </div>
+  </article>`;
+}
+
+function wireReview(card) {
+  const id = card.dataset.id;
+  $$('[data-act]', card).forEach((btn) => btn.addEventListener('click', async () => {
+    const status = btn.dataset.act;
+    const feedback = $(`#fb-${id}`, card).value.trim();
+    if (status === 'try_again' && !feedback) return toast('Add a note so she knows what to improve.', 'warn');
+    const sticker = $(`input[name="st-${id}"]:checked`, card)?.value || null;
+    const strong = $('.strong', card).checked && status === 'approved';
+    btn.disabled = true;
+    const { error } = await sb.from('submissions').update({
+      status, feedback: feedback || null, sticker,
+      bonus: strong ? STRONG_BONUS : 0,
+      reviewed_by: me.id, reviewed_at: new Date().toISOString(),
+    }).eq('id', id);
+    if (error) { btn.disabled = false; return toast(friendlyError(error), 'warn'); }
+    toast(status === 'approved' ? 'Approved ✓' : 'Sent back for another go');
+    card.classList.add('leaving');
+    setTimeout(() => card.remove(), reduceMotion ? 0 : 400);
+  }));
+}
+
+// ---------- Challenges ------------------------------------------------
+async function teacherChallenges(editId) {
+  loadingPage('challenges');
+  try {
+    const challenges = await fetchAll(() => sb.from('challenges').select('*').order('created_at', { ascending: false }));
+    const counts = {};
+    (await fetchAll(() => sb.from('submissions').select('challenge_id'))).forEach((s) => {
+      counts[s.challenge_id] = (counts[s.challenge_id] || 0) + 1;
+    });
+    const editing = challenges.find((c) => c.id === editId);
+    const prompts = editing?.prompts?.length ? editing.prompts : DEFAULT_PROMPTS;
+
+    shell('challenges', `
+      <section class="hero"><h1>Challenges</h1><p>Create missions for your students. Hidden missions stay in portfolios but can’t be started.</p></section>
+      <div class="two-col">
+        <form class="card" id="ch-form">
+          <h2>${editing ? 'Edit mission' : 'New mission'}</h2>
+          <label for="ch-title">Title</label>
+          <input id="ch-title" maxlength="80" required value="${esc(editing?.title || '')}" placeholder="Sleep and energy lab">
+          <label for="ch-brief">Mission brief <span class="muted">(what students do)</span></label>
+          <textarea id="ch-brief" rows="4" maxlength="2000" placeholder="Choose one habit to trial this week…">${esc(editing?.brief || '')}</textarea>
+          <label for="ch-element">Competency element</label>
+          <input id="ch-element" list="elements" maxlength="80" value="${esc(editing?.element || '')}" placeholder="Start typing…">
+          <datalist id="elements">${ELEMENT_SUGGESTIONS.map((e) => `<option value="${esc(e)}">`).join('')}</datalist>
+          <label for="ch-xp">XP reward</label>
+          <select id="ch-xp">${[25, 50, 75, 100, 150].map((x) => `<option ${x === (editing?.xp ?? 50) ? 'selected' : ''}>${x}</option>`).join('')}</select>
+          <label for="ch-prompts">Reflection questions <span class="muted">(one per line)</span></label>
+          <textarea id="ch-prompts" rows="5">${esc(prompts.join('\n'))}</textarea>
+          <div class="actions">
+            <button class="btn primary" type="submit">${editing ? 'Save changes' : 'Launch mission'}</button>
+            ${editing ? '<a class="btn ghost" href="#/challenges">Cancel</a>' : ''}
+          </div>
+        </form>
+        <div class="list">
+          ${challenges.map((c) => `
+            <article class="card mini ${c.active ? '' : 'hidden-ch'}">
+              <div class="mc-top"><span class="chip ${c.active ? 'done' : 'wait'}">${c.active ? 'Open' : 'Hidden'}</span><span class="xp-pill">+${c.xp} XP</span></div>
+              <h3>${esc(c.title)}</h3>
+              ${c.element ? `<p class="element">${esc(c.element)}</p>` : ''}
+              <p class="muted">${counts[c.id] || 0} submission${counts[c.id] === 1 ? '' : 's'}</p>
+              <div class="actions">
+                <a class="btn small" href="#/challenges/${c.id}">Edit</a>
+                <button class="btn small ghost" data-toggle="${c.id}" data-active="${c.active}">${c.active ? 'Hide' : 'Open'}</button>
+              </div>
+            </article>`).join('') || '<section class="card center"><p>No missions yet. Create your first one!</p></section>'}
+        </div>
+      </div>`);
+
+    $('#ch-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const row = {
+        title: $('#ch-title').value.trim(),
+        brief: $('#ch-brief').value.trim(),
+        element: $('#ch-element').value.trim() || null,
+        xp: Number($('#ch-xp').value),
+        prompts: $('#ch-prompts').value.split('\n').map((p) => p.trim()).filter(Boolean).slice(0, 8),
+      };
+      if (!row.prompts.length) row.prompts = DEFAULT_PROMPTS;
+      const { error } = editing
+        ? await sb.from('challenges').update(row).eq('id', editing.id)
+        : await sb.from('challenges').insert(row);
+      if (error) return toast(friendlyError(error), 'warn');
+      toast(editing ? 'Saved ✓' : 'Mission launched 🚀');
+      if (editing) location.hash = '#/challenges'; else teacherChallenges();
+    });
+    $$('[data-toggle]').forEach((b) => b.addEventListener('click', async () => {
+      const { error } = await sb.from('challenges').update({ active: b.dataset.active !== 'true' }).eq('id', b.dataset.toggle);
+      if (error) return toast(friendlyError(error), 'warn');
+      teacherChallenges(editId);
+    }));
+  } catch (e) { errorPage('challenges', e); }
+}
+
+// ---------- Class -----------------------------------------------------
+async function teacherClass() {
+  loadingPage('class');
+  try {
+    const filter = store('l2l-t-group') || '';
+    const students = await loadStudents();
+    const subs = await fetchAll(() => sb.from('submissions').select('student_id, status'));
+    const stats = {};
+    subs.forEach((s) => {
+      const t = (stats[s.student_id] ||= { total: 0, waiting: 0 });
+      t.total++;
+      if (s.status === 'submitted') t.waiting++;
+    });
+    const groups = groupsOf(students);
+    const list = students.filter((s) => !filter || s.mentor_group === filter);
+    const avgLevel = list.length ? (list.reduce((a, s) => a + levelOf(s.xp), 0) / list.length).toFixed(1) : '–';
+    const active = list.filter((s) => stats[s.id]?.total).length;
+
+    shell('class', `
+      <section class="hero row">
+        <div><h1>Class</h1><p>Everyone’s progress at a glance.</p></div>
+        <div class="controls">${groupSelect(groups, filter)}</div>
+      </section>
+      <div class="stats">
+        <div class="stat"><b>${list.length}</b><span>Students</span></div>
+        <div class="stat"><b>${active}</b><span>Have launched a mission</span></div>
+        <div class="stat"><b>${avgLevel}</b><span>Average level</span></div>
+        <div class="stat"><b>${list.reduce((a, s) => a + (stats[s.id]?.waiting || 0), 0)}</b><span>Waiting for review</span></div>
+      </div>
+      <section class="card">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Name</th><th>Username</th><th>Group</th><th>Level</th><th>XP</th><th>Missions</th><th><span class="sr">Actions</span></th></tr></thead>
+          <tbody>${list.map((s) => `<tr>
+            <td><b>${esc(s.display_name)}</b></td>
+            <td><code>${esc(s.username)}</code></td>
+            <td>${esc(s.mentor_group || '–')}</td>
+            <td>${levelOf(s.xp)}</td>
+            <td>${s.xp}</td>
+            <td>${stats[s.id]?.total || 0}${stats[s.id]?.waiting ? ` <span class="chip wait">${stats[s.id].waiting} waiting</span>` : ''}</td>
+            <td><button class="btn small ghost" data-reset="${s.id}" data-name="${esc(s.display_name)}">Reset password</button></td>
+          </tr>`).join('') || '<tr><td colspan="7" class="center muted">No students yet. Add some below.</td></tr>'}</tbody>
+        </table></div>
+      </section>
+      <form class="card" id="add-form">
+        <h2>Add students</h2>
+        <p class="muted">One student per line. First name only, or first name plus surname initial (e.g. “Amelia K”). No other personal details.</p>
+        <label for="names">Names</label>
+        <textarea id="names" rows="6" placeholder="Amelia K&#10;Zara&#10;Priya S"></textarea>
+        <label for="new-group">Mentor group</label>
+        <input id="new-group" list="groups" maxlength="30" value="${esc(filter)}" placeholder="e.g. 7B Buiks">
+        <datalist id="groups">${groups.map((g) => `<option value="${esc(g)}">`).join('')}</datalist>
+        <button class="btn primary" type="submit">Create logins</button>
+      </form>
+      <div id="cards-out"></div>`);
+
+    $('#group-filter').addEventListener('change', (e) => { store('l2l-t-group', e.target.value); teacherClass(); });
+    $('#add-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const names = $('#names').value.split('\n').map((n) => n.trim()).filter(Boolean);
+      if (!names.length) return toast('Add at least one name.', 'warn');
+      const btn = $('#add-form button');
+      btn.disabled = true;
+      btn.textContent = 'Creating…';
+      try {
+        const res = await callFunction({ action: 'create_students', names, mentor_group: $('#new-group').value.trim() });
+        showLoginCards(res, 'New logins');
+        $('#names').value = '';
+      } catch (err) { toast(friendlyError(err), 'warn'); }
+      btn.disabled = false;
+      btn.textContent = 'Create logins';
+    });
+    $$('[data-reset]').forEach((b) => b.addEventListener('click', async () => {
+      if (!confirm(`Make a new password for ${b.dataset.name}? Her old password will stop working.`)) return;
+      b.disabled = true;
+      try {
+        const res = await callFunction({ action: 'reset_password', student_id: b.dataset.reset });
+        showLoginCards(res, 'New password');
+      } catch (err) { toast(friendlyError(err), 'warn'); }
+      b.disabled = false;
+    }));
+  } catch (e) { errorPage('class', e); }
+}
+
+function showLoginCards(res, heading) {
+  const site = location.origin + location.pathname;
+  const out = $('#cards-out');
+  out.innerHTML = `
+    <section class="card print-area">
+      <div class="row no-print">
+        <h2>${esc(heading)}</h2>
+        <button class="btn primary" id="print-cards">Print login cards</button>
+      </div>
+      <p class="muted no-print">Print these now. Passwords are only shown once. If one gets lost, use “Reset password”.</p>
+      ${res.failed?.length ? `<p class="error no-print">Couldn’t create: ${res.failed.map((f) => `${esc(f.name)} (${esc(f.reason)})`).join(', ')}</p>` : ''}
+      <div class="login-cards">
+        ${res.created.map((c) => `<div class="login-card">
+          <p class="lc-brand">MISSION CONTROL</p>
+          <p class="lc-name">${esc(c.name)}${c.mentor_group ? ` · ${esc(c.mentor_group)}` : ''}</p>
+          <p><span>Website</span><b>${esc(site)}</b></p>
+          <p><span>Username</span><b>${esc(c.username)}</b></p>
+          <p><span>Password</span><b>${esc(c.password)}</b></p>
+          <p class="lc-note">Keep this card private. Don’t share your password.</p>
+        </div>`).join('')}
+      </div>
+    </section>`;
+  $('#print-cards').addEventListener('click', () => window.print());
+  out.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
+  toast(`${res.created.length} login${res.created.length === 1 ? '' : 's'} ready`);
+}
+
+// ---------- Teachers (admin only) ------------------------------------
+async function teacherTeachers() {
+  if (!me.is_admin) { location.hash = '#/inbox'; return; }
+  loadingPage('teachers');
+  try {
+    const teachers = await fetchAll(() => sb.from('profiles').select('*').eq('role', 'teacher').order('display_name'));
+    shell('teachers', `
+      <section class="hero"><h1>Teachers</h1><p>Mentor teachers can see every student, review reflections and create missions.</p></section>
+      <div class="two-col">
+        <form class="card" id="t-form">
+          <h2>Add a teacher</h2>
+          <label for="t-name">Name students see</label>
+          <input id="t-name" maxlength="40" required placeholder="Mr Smith">
+          <label for="t-email">School email</label>
+          <input id="t-email" type="email" required placeholder="name@school.edu.au">
+          <button class="btn primary" type="submit">Create teacher login</button>
+          <div id="t-out"></div>
+        </form>
+        <div class="list">${teachers.map((t) => `<article class="card mini">
+          <h3>${esc(t.display_name)} ${t.is_admin ? '<span class="chip done">Admin</span>' : ''}</h3>
+          <p class="muted">${esc(t.username)}</p></article>`).join('')}</div>
+      </div>`);
+    $('#t-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('#t-form button');
+      btn.disabled = true;
+      try {
+        const res = await callFunction({ action: 'create_teacher', name: $('#t-name').value.trim(), email: $('#t-email').value.trim() });
+        $('#t-out').innerHTML = `<div class="feedback approved"><p><b>${esc(res.name)}</b> can now log in.</p>
+          <p>Email: <code>${esc(res.email)}</code><br>Password: <code>${esc(res.password)}</code></p>
+          <p class="muted">Send these to them privately. This password won’t be shown again.</p></div>`;
+        $('#t-name').value = '';
+        $('#t-email').value = '';
+      } catch (err) { toast(friendlyError(err), 'warn'); }
+      btn.disabled = false;
+    });
+  } catch (e) { errorPage('teachers', e); }
+}
+
+// ---------- Go! -------------------------------------------------------
+if (sb) {
+  sb.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT' && me) { me = null; renderLogin(); }
+  });
+}
+boot().catch((e) => {
+  app.innerHTML = `<section class="card narrow center"><h2>Couldn’t start</h2><p>${esc(friendlyError(e))}</p></section>`;
+});
+
+</script>
+</body>
+</html>
