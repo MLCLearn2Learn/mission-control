@@ -585,6 +585,48 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
 .shake{animation:shake .35s}
 @keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 @media (prefers-reduced-motion:reduce){.shake{animation:none}}
+
+/* ---------- crews ---------- */
+.crew-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:12px}
+.crew-card{background:#FBFAF6;border:2px solid #1A1A1A;padding:12px 14px;display:flex;flex-direction:column;gap:8px;box-shadow:3px 3px 0 #1A1A1A}
+.crew-card.unassigned{background:transparent;border-style:dashed;box-shadow:none}
+.crew-card.droppable{cursor:pointer;outline:3px dashed #B3170F;outline-offset:2px}
+.crew-name{font-family:'Special Elite',monospace;font-size:1.25rem;border:0;border-bottom:2px solid #1A1A1A;background:transparent;padding:2px 0;width:100%}
+.crew-name-fixed{margin:0;font-weight:700}
+.crew-girls{display:flex;flex-wrap:wrap;gap:6px}
+.girl{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.92rem;font-weight:700;padding:5px 9px;border:2px solid #1A1A1A;background:#FFF;cursor:pointer;min-height:36px}
+.girl .dot{width:10px;height:10px;border-radius:50%;background:#B9B2A6;flex:none}
+.girl.ok .dot{background:#2F6B3A}.girl.alone .dot{background:#D98E04}.girl.clash .dot{background:#B3170F}
+.girl.clash{border-color:#B3170F}
+.girl.picked{background:#1A1A1A;color:#FFF}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}.legend .girl{cursor:default;font-weight:400}
+.drop-here{margin:0;font-size:.85rem;color:#B3170F;font-weight:700}
+.crew-summary{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.chip.ok{background:#E2F0E4;border-color:#2F6B3A;color:#1E4A27}
+.survey-count{margin:.6rem 0 0}
+.survey h2{margin:.2rem 0 .4rem}
+.mate-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:10px 0 14px}
+.mate{display:flex;align-items:center;gap:8px;border:2px solid #1A1A1A;padding:8px 10px;background:#FBFAF6;cursor:pointer;min-height:44px}
+.mate:has(input:checked){background:#1A1A1A;color:#FFF}
+.survey select{margin:6px 0 12px;max-width:100%}
+.crew-mine h2{margin:.1rem 0 .4rem;font-family:'Special Elite',monospace}
+.my-role{background:#FFF6C9;padding:8px 10px;margin:0 0 8px}
+.crew-list{margin:0;padding-left:18px}.crew-list li.me{font-weight:700}
+/* projector board */
+.crew-overlay{position:fixed;inset:0;z-index:50;background:#1A1A1A;color:#F4EFE6;overflow:auto;display:flex;flex-direction:column}
+.board{flex:1;padding:4vh 5vw}
+.board-title{margin:0;font-family:'Special Elite',monospace;font-weight:400;font-size:clamp(2.5rem,6vw,5.5rem);color:#FF5A4E}
+.board-sub{margin:.2rem 0 2.5vh;font-size:clamp(1rem,1.8vw,1.6rem)}
+.board-rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1.4vh}
+.board-rows li{display:flex;align-items:center;gap:2vw;background:#F4EFE6;color:#1A1A1A;padding:1.4vh 2vw;position:relative}
+.board-rows li.all{outline:4px solid #2F6B3A;outline-offset:-8px}
+.b-name{flex:1;font-family:'Special Elite',monospace;font-size:clamp(1.4rem,3vw,2.8rem)}
+.b-locks{order:2;display:flex;gap:.8vw}.b-count{order:3}.b-lock svg{width:clamp(28px,3.2vw,56px);height:auto;opacity:.35}.b-lock.open svg{opacity:1}
+.b-count{font-family:'Special Elite',monospace;font-size:clamp(1.4rem,3vw,2.8rem);min-width:3ch;text-align:right}
+.b-stamp{order:1;font-family:'Special Elite',monospace;color:#2F6B3A;border:4px solid #2F6B3A;padding:2px 12px 0;transform:rotate(-6deg);font-size:clamp(1rem,2vw,1.8rem)}
+.board-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 5vw;background:#111}
+.board-bar button,.board-bar select{font:inherit;padding:6px 12px}
+.board-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 </style>
 </head>
 <body>
@@ -815,7 +857,7 @@ function route() {
   if (me.role === 'teacher') {
     const views = {
       review: teacherReview, cases: teacherCases, edit: caseBuilder, present: presentMode,
-      case: studentCase, class: teacherClass, teachers: teacherTeachers,
+      case: studentCase, class: teacherClass, crews: teacherCrews, teachers: teacherTeachers,
     };
     (views[view] || teacherReview)(id, extra);
   } else {
@@ -882,7 +924,7 @@ async function logout() {
 function shell(active, body, opts = {}) {
   const isT = me.role === 'teacher';
   const tabs = isT
-    ? [['review', `Review${opts.waiting ? ` <b class="count">${opts.waiting}</b>` : ''}`], ['cases', 'Case room'], ['class', 'Class'], ...(me.is_admin ? [['teachers', 'Teachers']] : [])]
+    ? [['review', `Review${opts.waiting ? ` <b class="count">${opts.waiting}</b>` : ''}`], ['cases', 'Case room'], ['class', 'Class'], ['crews', 'Crews'], ...(me.is_admin ? [['teachers', 'Teachers']] : [])]
     : [['map', 'Case map'], ['portfolio', 'My portfolio']];
   const hud = isT ? '' : `
     <div class="hud" title="${me.xp} XP">
@@ -1225,6 +1267,347 @@ function padlockSvg(open) {
     : '<svg viewBox="0 0 48 56" aria-hidden="true"><path d="M14 24V16a10 10 0 0 1 20 0v8" fill="none" stroke="#B3170F" stroke-width="5"/><rect x="6" y="24" width="36" height="28" rx="3" fill="#B3170F"/><circle cx="24" cy="36" r="4" fill="#F4EFE6"/><path d="M24 39v6" stroke="#F4EFE6" stroke-width="3" stroke-linecap="round"/></svg>';
 }
 
+// ===== crews.js =====
+// =====================================================================
+// CREWS · private "who would you like to work with" survey, teacher-made
+// crews (with suggestions so nobody is left out), roles that rotate each
+// case, and the live crew scoreboard for the projector.
+// =====================================================================
+
+const CREW_NAMES = ['Night Owls', 'Code Breakers', 'Sharp Eyes', 'The Lookouts', 'Cipher Squad', 'Silver Keys', 'Clue Crew',
+  'The Decoders', 'Red Herrings', 'Fox Trackers', 'Bright Sparks', 'Moonlighters', 'Paper Trail', 'The Insiders'];
+const CREW_ROLES = {
+  3: ['Lead detective', 'Codebreaker', 'Recorder and spokesperson'],
+  4: ['Lead detective', 'Codebreaker', 'Recorder', 'Spokesperson'],
+  5: ['Lead detective', 'Codebreaker', 'Recorder', 'Spokesperson', 'Navigator'],
+};
+const ROLE_JOBS = {
+  'Lead detective': 'keeps the crew moving and on time',
+  Codebreaker: 'reads the clues aloud and tries the codes',
+  Recorder: 'writes down what the crew works out',
+  Spokesperson: 'reports back to the class',
+  'Recorder and spokesperson': 'writes things down and reports back',
+  Navigator: 'checks the instructions and the timer',
+};
+function roleFor(position, size, week) {
+  const roles = CREW_ROLES[Math.max(3, Math.min(5, size))] || CREW_ROLES[4];
+  return roles[((position + (week || 0)) % size + size) % size] || roles[0];
+}
+
+async function getSettings() {
+  const { data } = await sb.from('app_settings').select('key, value');
+  const s = { current_term: 1, survey_open: false };
+  (data || []).forEach((r) => { s[r.key] = r.value; });
+  s.current_term = Number(s.current_term) || 1;
+  s.survey_open = s.survey_open === true;
+  return s;
+}
+async function setSetting(key, value) {
+  return sb.from('app_settings').upsert({ key, value, updated_at: new Date().toISOString() });
+}
+
+// ---------- the suggestion engine -----------------------------------------
+// Every girl should have at least one person she picked in her crew. Girls who
+// were picked least are placed first, then swaps improve the result.
+function suggestCrews(students, prefs, size) {
+  const ids = students.map((s) => s.id);
+  const pick = {}; const avoid = {};
+  ids.forEach((id) => { pick[id] = new Set(); avoid[id] = new Set(); });
+  prefs.forEach((p) => {
+    if (!pick[p.student_id]) return;
+    (p.picks || []).forEach((x) => { if (pick[x]) pick[p.student_id].add(x); });
+    if (p.avoid && pick[p.avoid]) { avoid[p.student_id].add(p.avoid); avoid[p.avoid].add(p.student_id); }
+  });
+  const pickedBy = {};
+  ids.forEach((id) => { pickedBy[id] = 0; });
+  ids.forEach((id) => pick[id].forEach((x) => { pickedBy[x]++; }));
+
+  const n = ids.length;
+  if (!n) return [];
+  const k = Math.max(1, Math.round(n / size));
+  const base = Math.floor(n / k);
+  const caps = Array.from({ length: k }, (_, i) => base + (i < n % k ? 1 : 0));
+  const crews = Array.from({ length: k }, () => []);
+  const happy = (id, crew) => {
+    let sc = 0;
+    const mates = crew.filter((x) => x !== id);
+    const mine = mates.filter((x) => pick[id].has(x)).length;
+    if (pick[id].size) sc += mine ? 10 + 2 * mine : 0; else sc += 10;
+    sc += mates.filter((x) => pick[x].has(id)).length;
+    sc -= 100 * mates.filter((x) => avoid[id].has(x)).length;
+    return sc;
+  };
+  const total = () => crews.reduce((a, c) => a + c.reduce((b, id) => b + happy(id, c), 0), 0);
+
+  // place the least-picked girls first
+  const order = [...ids].sort((a, b) => (pickedBy[a] - pickedBy[b]) || (Math.random() - 0.5));
+  order.forEach((id) => {
+    let best = -1; let bestScore = -Infinity;
+    crews.forEach((c, i) => {
+      if (c.length >= caps[i]) return;
+      const sc = happy(id, [...c, id]) + c.reduce((a, x) => a + (pick[x].has(id) ? 3 : 0) - (avoid[x].has(id) ? 100 : 0), 0) - c.length * 0.5;
+      if (sc > bestScore) { bestScore = sc; best = i; }
+    });
+    crews[best].push(id);
+  });
+  // improve with swaps
+  let cur = total();
+  for (let it = 0; it < 3000; it++) {
+    const a = Math.floor(Math.random() * k); const b = Math.floor(Math.random() * k);
+    if (a === b || !crews[a].length || !crews[b].length) continue;
+    const i = Math.floor(Math.random() * crews[a].length); const j = Math.floor(Math.random() * crews[b].length);
+    [crews[a][i], crews[b][j]] = [crews[b][j], crews[a][i]];
+    const nx = total();
+    if (nx >= cur) cur = nx; else [crews[a][i], crews[b][j]] = [crews[b][j], crews[a][i]];
+  }
+  return crews;
+}
+
+// How each girl sits in her crew: ok (has someone she picked), alone (nobody she picked), clash
+function crewMarks(crew, prefsBy) {
+  const out = {};
+  crew.forEach((id) => {
+    const p = prefsBy[id];
+    const mates = crew.filter((x) => x !== id);
+    const clash = mates.some((x) => p?.avoid === x || prefsBy[x]?.avoid === id);
+    const has = p ? mates.some((x) => (p.picks || []).includes(x)) : null;
+    out[id] = clash ? 'clash' : has === null ? 'none' : has ? 'ok' : 'alone';
+  });
+  return out;
+}
+
+// ---------- Teacher: Crews page -------------------------------------------
+async function teacherCrews() {
+  loadingPage('crews');
+  try {
+    const [settings, students, waiting] = await Promise.all([getSettings(), loadStudents(), waitingCount()]);
+    const groups = groupsOf(students);
+    let group = store('l2l-t-group') || '';
+    if (!groups.includes(group)) group = groups[0] || '';
+    const term = settings.current_term;
+    const list = students.filter((s) => s.mentor_group === group);
+    const byId = Object.fromEntries(list.map((s) => [s.id, s]));
+    const { data: prefs } = await sb.from('crew_prefs').select('*').eq('term', term);
+    const groupPrefs = (prefs || []).filter((p) => byId[p.student_id]);
+    const prefsBy = Object.fromEntries(groupPrefs.map((p) => [p.student_id, p]));
+    const { data: saved } = group ? await sb.from('crews').select('id, name, crew_members(student_id, position)').eq('mentor_group', group).eq('term', term).order('created_at') : { data: [] };
+
+    let crews = (saved || []).map((c) => ({ name: c.name, ids: (c.crew_members || []).sort((a, b) => a.position - b.position).map((m) => m.student_id).filter((id) => byId[id]) }));
+    let size = Number(store('l2l-crew-size')) || 4;
+    let picked = null;
+    let dirty = false;
+
+    const unassigned = () => list.map((s) => s.id).filter((id) => !crews.some((c) => c.ids.includes(id)));
+    const nameOf = (id) => byId[id]?.display_name || '?';
+
+    const paint = () => {
+      const marks = {};
+      crews.forEach((c) => Object.assign(marks, crewMarks(c.ids, prefsBy)));
+      const alone = Object.values(marks).filter((m) => m === 'alone').length;
+      const clash = Object.values(marks).filter((m) => m === 'clash').length;
+      const chip = (id) => `<button type="button" class="girl ${marks[id] || 'none'} ${picked === id ? 'picked' : ''}" data-girl="${id}" title="${{ ok: 'Has someone she picked', alone: 'Nobody she picked is in this crew', clash: 'Clash: someone here was named as hard to work with', none: 'Hasn’t done the survey' }[marks[id] || 'none']}">
+        <span class="dot" aria-hidden="true"></span>${esc(nameOf(id))}</button>`;
+      $('#crew-board').innerHTML = `
+        ${crews.map((c, i) => `<section class="crew-card ${picked ? 'droppable' : ''}" data-crew="${i}">
+          <input class="crew-name" data-name="${i}" maxlength="30" value="${esc(c.name)}" aria-label="Crew name">
+          <div class="crew-girls">${c.ids.map(chip).join('') || '<p class="muted small">Empty</p>'}</div>
+          ${picked ? '<p class="drop-here">Click to move her here</p>' : ''}
+          <button type="button" class="link-btn danger small" data-delcrew="${i}">Remove crew</button>
+        </section>`).join('')}
+        <section class="crew-card unassigned ${picked ? 'droppable' : ''}" data-crew="-1">
+          <p class="crew-name-fixed">Not in a crew yet <b>${unassigned().length}</b></p>
+          <div class="crew-girls">${unassigned().map(chip).join('') || '<p class="muted small">Everyone has a crew.</p>'}</div>
+        </section>`;
+      $('#crew-summary').innerHTML = crews.length
+        ? `${alone || clash ? `<span class="chip warn">${alone ? `${alone} girl${alone === 1 ? '' : 's'} without someone she picked` : ''}${alone && clash ? ' · ' : ''}${clash ? `${clash} clash${clash === 1 ? '' : 'es'}` : ''}</span>` : '<span class="chip ok">Every girl who did the survey has someone she picked</span>'}
+           ${dirty ? '<span class="chip warn">Not saved</span>' : '<span class="chip">Saved</span>'}`
+        : '';
+    };
+
+    shell('crews', `
+      <section class="page-head">
+        <div><h1 class="label-black">CREWS</h1><p>You make the crews, so nobody is left out. Crews stay together for the term and roles rotate each case.</p></div>
+        <div class="controls">
+          <label class="inline" for="crew-group">Mentor group
+            <select id="crew-group">${groups.map((g) => `<option ${g === group ? 'selected' : ''}>${esc(g)}</option>`).join('') || '<option value="">No groups yet</option>'}</select></label>
+          <label class="inline" for="crew-term">Current term
+            <select id="crew-term">${[1, 2, 3, 4].map((t) => `<option value="${t}" ${t === term ? 'selected' : ''}>Term ${t}</option>`).join('')}</select></label>
+        </div>
+      </section>
+
+      <section class="paper">
+        <h2>1 · The private survey</h2>
+        <p>Each girl privately names up to three people she’d enjoy working with, and can name one person she’d find it hard to work with. <b>Only teachers ever see the answers.</b></p>
+        <label class="switch"><input type="checkbox" id="survey-open" ${settings.survey_open ? 'checked' : ''}><span>${settings.survey_open ? 'Survey is open: girls see it on their case map' : 'Survey is closed'}</span></label>
+        <p class="survey-count"><b>${groupPrefs.length} of ${list.length}</b> in ${esc(group || 'this group')} have answered for Term ${term}.
+          ${list.length - groupPrefs.length ? `<span class="muted">Still to answer: ${list.filter((s) => !prefsBy[s.id]).map((s) => esc(s.display_name)).join(', ')}</span>` : ''}</p>
+      </section>
+
+      <section class="paper">
+        <h2>2 · Make the crews</h2>
+        <div class="row-actions">
+          <label class="inline" for="crew-size">Crew size <select id="crew-size">${[3, 4, 5].map((n) => `<option ${n === size ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+          <button type="button" class="stamp-btn" id="suggest">${crews.length ? 'Suggest new crews' : 'Suggest crews'}</button>
+          <button type="button" class="stamp-btn ghost" id="add-crew">+ Empty crew</button>
+          <button type="button" class="stamp-btn green" id="save-crews">Save crews</button>
+        </div>
+        <p class="muted small">To move a girl: click her name, then click the crew she should join. Click a crew name to rename it.</p>
+        <p class="legend"><span class="girl ok"><span class="dot"></span>has someone she picked</span> <span class="girl alone"><span class="dot"></span>nobody she picked</span> <span class="girl clash"><span class="dot"></span>clash</span> <span class="girl none"><span class="dot"></span>no survey yet</span></p>
+        <div id="crew-summary" class="crew-summary"></div>
+        <div id="crew-board" class="crew-board"></div>
+      </section>`, { waiting });
+    paint();
+
+    $('#crew-group').addEventListener('change', (e) => {
+      if (dirty && !confirm('You have unsaved crews. Switch group anyway?')) { e.target.value = group; return; }
+      store('l2l-t-group', e.target.value); teacherCrews();
+    });
+    $('#crew-term').addEventListener('change', async (e) => {
+      const t = Number(e.target.value);
+      if (!confirm(`Make Term ${t} the current term for everyone? Girls will see their Term ${t} crews.`)) { e.target.value = term; return; }
+      const { error } = await setSetting('current_term', t);
+      if (error) return toast(friendlyError(error), 'warn');
+      toast(`Now in Term ${t}`); teacherCrews();
+    });
+    $('#survey-open').addEventListener('change', async (e) => {
+      const { error } = await setSetting('survey_open', e.target.checked);
+      if (error) { e.target.checked = !e.target.checked; return toast(friendlyError(error), 'warn'); }
+      e.target.nextElementSibling.textContent = e.target.checked ? 'Survey is open: girls see it on their case map' : 'Survey is closed';
+      toast(e.target.checked ? 'Survey opened' : 'Survey closed');
+    });
+    $('#crew-size').addEventListener('change', (e) => { size = Number(e.target.value); store('l2l-crew-size', size); });
+    $('#suggest').addEventListener('click', () => {
+      if (!list.length) return toast('Add students to this group first.', 'warn');
+      if (crews.length && !confirm('Replace the current crews with new suggestions?')) return;
+      const made = suggestCrews(list, groupPrefs, size);
+      const names = [...CREW_NAMES].sort(() => Math.random() - 0.5);
+      crews = made.map((ids, i) => ({ name: names[i % names.length], ids }));
+      picked = null; dirty = true; paint();
+      toast('Crews suggested. Check them, move anyone you need to, then save.');
+    });
+    $('#add-crew').addEventListener('click', () => { crews.push({ name: CREW_NAMES[crews.length % CREW_NAMES.length], ids: [] }); dirty = true; paint(); });
+    $('#crew-board').addEventListener('click', (e) => {
+      const g = e.target.closest('[data-girl]');
+      const del = e.target.closest('[data-delcrew]');
+      if (del) { crews.splice(Number(del.dataset.delcrew), 1); dirty = true; picked = null; paint(); return; }
+      if (e.target.closest('.crew-name')) return;
+      if (g && (!picked || g.dataset.girl === picked)) { picked = picked === g.dataset.girl ? null : g.dataset.girl; paint(); return; }
+      const card = e.target.closest('[data-crew]');
+      if (picked && card) {
+        crews.forEach((c) => { c.ids = c.ids.filter((x) => x !== picked); });
+        const i = Number(card.dataset.crew);
+        if (i >= 0) crews[i].ids.push(picked);
+        picked = null; dirty = true; paint();
+      }
+    });
+    $('#crew-board').addEventListener('input', (e) => {
+      const n = e.target.closest('[data-name]');
+      if (n) { crews[Number(n.dataset.name)].name = n.value; dirty = true; $('#crew-summary .chip:last-child').textContent = 'Not saved'; }
+    });
+    $('#save-crews').addEventListener('click', async () => {
+      if (!group) return;
+      const btn = $('#save-crews');
+      btn.disabled = true; btn.textContent = 'Saving…';
+      try {
+        const { error: de } = await sb.from('crews').delete().eq('mentor_group', group).eq('term', term);
+        if (de) throw de;
+        for (const c of crews.filter((x) => x.ids.length)) {
+          const { data: row, error } = await sb.from('crews').insert({ mentor_group: group, term, name: (c.name || 'Crew').trim().slice(0, 30) || 'Crew' }).select('id').single();
+          if (error) throw error;
+          const { error: me2 } = await sb.from('crew_members').insert(c.ids.map((id, pos) => ({ crew_id: row.id, student_id: id, position: pos })));
+          if (me2) throw me2;
+        }
+        dirty = false; paint(); toast('Crews saved');
+      } catch (err) { toast(friendlyError(err), 'warn'); }
+      btn.disabled = false; btn.textContent = 'Save crews';
+    });
+  } catch (e) { errorPage('crews', e); }
+}
+
+// ---------- Student: survey card and crew card ------------------------------
+async function surveyCard() {
+  try {
+    const settings = await getSettings();
+    if (!settings.survey_open) return '';
+    const { data: mine } = await sb.from('crew_prefs').select('*').eq('student_id', me.id).eq('term', settings.current_term).maybeSingle();
+    if (mine && !store('l2l-survey-edit')) {
+      return `<section class="paper survey done"><p class="eyebrow">CREW SURVEY</p><p>Thanks, your answers are in. Only your teachers can see them. <button type="button" class="link-btn" id="survey-edit">Change my answers</button></p></section>`;
+    }
+    const { data: mates } = await sb.rpc('classmates');
+    if (!mates?.length) return '';
+    const picks = new Set(mine?.picks || []);
+    return `<form class="paper survey" id="survey-form">
+      <p class="eyebrow">CREW SURVEY · TERM ${settings.current_term} · PRIVATE</p>
+      <h2>Who would you enjoy working with?</h2>
+      <p>Choose up to <b>three</b> people. Your teachers use this to make the crews. <b>Nobody else will ever see your answers.</b></p>
+      <div class="mate-grid">${mates.map((m) => `<label class="mate"><input type="checkbox" name="pick" value="${m.id}" ${picks.has(m.id) ? 'checked' : ''}><span>${esc(m.display_name)}</span></label>`).join('')}</div>
+      <label for="avoid">Is there anyone you’d find it hard to work with? <span class="muted">(optional, private)</span></label>
+      <select id="avoid"><option value="">No one</option>${mates.map((m) => `<option value="${m.id}" ${mine?.avoid === m.id ? 'selected' : ''}>${esc(m.display_name)}</option>`).join('')}</select>
+      <button class="stamp-btn">Send to my teacher</button>
+    </form>`;
+  } catch { return ''; }
+}
+function wireSurvey(rerender) {
+  $('#survey-edit')?.addEventListener('click', () => { store('l2l-survey-edit', 1); rerender(); });
+  const f = $('#survey-form');
+  if (!f) return;
+  f.addEventListener('change', (e) => {
+    if (e.target.name !== 'pick') return;
+    const on = $$('input[name="pick"]:checked', f);
+    if (on.length > 3) { e.target.checked = false; toast('Three is the limit.', 'warn'); }
+  });
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const settings = await getSettings();
+    const picks = $$('input[name="pick"]:checked', f).map((x) => x.value).slice(0, 3);
+    const avoid = $('#avoid', f).value || null;
+    if (avoid && picks.includes(avoid)) return toast('You picked that person to work with too. Check your answers.', 'warn');
+    const { error } = await sb.from('crew_prefs').upsert({ student_id: me.id, term: settings.current_term, picks, avoid, updated_at: new Date().toISOString() });
+    if (error) return toast(friendlyError(error), 'warn');
+    store('l2l-survey-edit', null);
+    toast('Sent. Only your teachers can see it.');
+    rerender();
+  });
+}
+
+async function crewCard(week) {
+  try {
+    const { data: crew } = await sb.rpc('my_crew');
+    if (!crew?.members?.length) return '';
+    const n = crew.members.length;
+    const rows = crew.members.map((m, i) => ({ ...m, role: roleFor(i, n, week) }));
+    const mine = rows.find((r) => r.me);
+    return `<section class="paper crew-mine">
+      <p class="eyebrow">YOUR CREW</p><h2>${esc(crew.name)}</h2>
+      ${mine && week ? `<p class="my-role">Your role this case: <b>${esc(mine.role)}</b> <span class="muted">· ${esc(ROLE_JOBS[mine.role] || '')}</span></p>` : ''}
+      <ul class="crew-list">${rows.map((r) => `<li class="${r.me ? 'me' : ''}"><b>${esc(r.name)}${r.me ? ' (you)' : ''}</b>${week ? ` · ${esc(r.role)}` : ''}</li>`).join('')}</ul>
+    </section>`;
+  } catch { return ''; }
+}
+
+// ---------- Projector: live crew scoreboard --------------------------------
+async function crewBoardHtml(c, slides, group) {
+  const locks = slides.filter((s) => s.type === 'lock');
+  const settings = await getSettings();
+  const { data: crews } = await sb.from('crews').select('id, name').eq('mentor_group', group).eq('term', settings.current_term);
+  if (!crews?.length) return `<div class="board-empty"><h1>No crews yet for ${esc(group)}</h1><p>Make them on the Crews page.</p></div>`;
+  const { data: prog } = await sb.from('crew_progress').select('crew_id, slide_id, cracked_at').eq('challenge_id', c.id).in('crew_id', crews.map((x) => x.id));
+  const rows = crews.map((cr) => {
+    const mine = (prog || []).filter((p) => p.crew_id === cr.id);
+    const done = locks.filter((l) => mine.some((p) => p.slide_id === l.id)).length;
+    const last = mine.reduce((a, p) => (p.cracked_at > a ? p.cracked_at : a), '');
+    return { ...cr, done, last };
+  }).sort((a, b) => (b.done - a.done) || (a.last && b.last ? a.last.localeCompare(b.last) : 0) || a.name.localeCompare(b.name));
+  return `<div class="board">
+    <h1 class="board-title">CREW BOARD</h1><p class="board-sub">${esc(c.title)} · ${esc(group)}</p>
+    <ol class="board-rows">${rows.map((r) => `<li class="${r.done === locks.length && locks.length ? 'all' : ''}">
+      <span class="b-name">${esc(r.name)}</span>
+      <span class="b-locks">${locks.map((l, i) => `<span class="b-lock ${(prog || []).some((p) => p.crew_id === r.id && p.slide_id === l.id) ? 'open' : ''}" title="Lock ${i + 1}">${padlockSvg((prog || []).some((p) => p.crew_id === r.id && p.slide_id === l.id))}</span>`).join('')}</span>
+      <span class="b-count">${r.done}/${locks.length}</span>
+      ${r.done === locks.length && locks.length ? '<span class="b-stamp">CRACKED</span>' : ''}
+    </li>`).join('')}</ol></div>`;
+}
+
 // ===== student.js =====
 // =====================================================================
 // STUDENT SIDE · city map, case page, portfolio
@@ -1259,9 +1642,9 @@ async function studentMap(district) {
   loadingPage('map');
   try {
     await refreshMe();
-    const [{ data: cases, error }, subs] = await Promise.all([
+    const [{ data: cases, error }, subs, survey, crewHtml] = await Promise.all([
       sb.from('challenges').select('id, title, week, district, location, message, boss, xp').eq('active', true),
-      loadMySubmissions(),
+      loadMySubmissions(), surveyCard(), crewCard(0),
     ]);
     if (error) throw error;
     cases.sort(byWeek);
@@ -1317,6 +1700,7 @@ async function studentMap(district) {
           ${list.length ? '<div class="loc classified" data-loc aria-hidden="true"><p class="loc-no">NEXT CASE</p><h3>CLASSIFIED</h3><span class="loc-st">LOCKED</span></div>' : ''}
         </section>
         <aside class="map-side">
+          ${survey}
           ${current ? `<section class="paper pinned now-open">
             <p class="eyebrow">${current.district === dn ? 'NOW OPEN' : `NOW OPEN IN DISTRICT ${current.district}`}</p>
             <h2>Case #${pad2(current.week || 0)} · ${esc(current.title)}</h2>
@@ -1328,10 +1712,12 @@ async function studentMap(district) {
             <p class="big-num">${closedHere} <span>of ${list.length} cases closed</span></p>
             <p class="small">Rank: <b>${esc(rankOf(me.xp))}</b> · Level ${levelOf(me.xp)} · ${XP_PER_LEVEL - intoLevel(me.xp)} XP to level ${levelOf(me.xp) + 1}</p>
           </section>
+          ${crewHtml}
         </aside>
       </div>`);
     drawString();
     window.onresize = drawString;
+    wireSurvey(() => studentMap(district));
     celebrateBonuses(subs);
   } catch (e) { errorPage('map', e); }
 }
@@ -1404,6 +1790,7 @@ async function studentCase(id) {
     const steps = Array.isArray(c.steps) ? c.steps : [];
 
     const urls = await signUrls(sub ? [sub] : []);
+    const crewHtml = isT ? '' : await crewCard(c.week || 0);
     const verdict = sub && (sub.feedback || sub.sticker || sub.status !== 'submitted') ? verdictCard(sub, c) : '';
     const phases = [['hook', 'Hook', hook.length], ['intel', 'Intel', intel.length], ['investigate', 'Investigate', inv.length || steps.length], ['debrief', 'Debrief', deb.length], ['capture', 'Capture', 1]].filter((p) => p[2]);
 
@@ -1421,6 +1808,7 @@ async function studentCase(id) {
         ${c.element ? `<p class="element">${esc(c.element)}</p>` : ''}
       </section>
       ${verdict}
+      ${crewHtml}
       <nav class="phase-nav" aria-label="Case progress">
         ${phases.map(([k, l], i) => `<a href="#ph-${k}" data-phase="${k}"><b>${i + 1}</b> ${l}</a>`).join('')}
       </nav>
@@ -1481,6 +1869,7 @@ async function studentCase(id) {
         }
         opened.add(s.id); store(lockKey, [...opened]);
         toast('Lock cracked!');
+        sb.rpc('record_crack', { p_challenge: c.id, p_slide: s.id, p_code: val }).then(() => {});
         lockIdx.forEach((j) => {
           const w = $(`[data-lock="${j}"]`);
           if (!w) return;
@@ -2393,6 +2782,7 @@ async function presentMode(id, start) {
     app.innerHTML = `
       <div class="present" id="present">
         <div class="present-stage"><div class="slide-frame present-frame" id="pframe"></div></div>
+        <div class="crew-overlay" id="crew-overlay" hidden></div>
         <div class="present-bar" id="pbar">
           <button type="button" id="p-exit" aria-label="Exit">✕ Exit</button>
           <button type="button" id="p-prev" aria-label="Previous slide">◀</button>
@@ -2400,7 +2790,8 @@ async function presentMode(id, start) {
           <button type="button" id="p-next" class="red" aria-label="Next slide">Next ▶</button>
           <span class="p-timer" id="p-timer"></span>
           <button type="button" id="p-full">Full screen (F)</button>
-          <span class="p-help">← → or clicker to move · T start/pause timer · R reset</span>
+          <button type="button" id="p-board">Crew board (S)</button>
+          <span class="p-help">← → or clicker to move · T timer · R reset · S crew board</span>
         </div>
       </div>`;
 
@@ -2456,8 +2847,44 @@ async function presentMode(id, start) {
       if (nt?.running) { nt.running = false; toggleTimer(); }
       paint();
     }
+    // live crew board overlay
+    let boardTimer = null;
+    let boardGroups = null;
+    const paintBoard = async () => {
+      const ov = $('#crew-overlay');
+      if (!ov || ov.hidden) return;
+      if (!boardGroups) boardGroups = groupsOf(await loadStudents());
+      let g = store('l2l-t-group') || '';
+      if (!boardGroups.includes(g)) g = boardGroups[0] || '';
+      const inner = await crewBoardHtml(c, slides, g);
+      if (ov.hidden) return;
+      ov.innerHTML = `${inner}<div class="board-bar">
+        <label>Group <select id="board-group">${boardGroups.map((x) => `<option ${x === g ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>
+        <button type="button" id="board-reset">Reset board</button>
+        <button type="button" id="board-close">Back to slides (S)</button><span class="muted">Updates every few seconds</span></div>`;
+      $('#board-group').addEventListener('change', (e) => { store('l2l-t-group', e.target.value); paintBoard(); });
+      $('#board-close').addEventListener('click', toggleBoard);
+      $('#board-reset').addEventListener('click', async () => {
+        if (!confirm('Clear every crew’s cracked locks for this case?')) return;
+        await sb.from('crew_progress').delete().eq('challenge_id', c.id);
+        paintBoard();
+      });
+    };
+    function toggleBoard() {
+      const ov = $('#crew-overlay');
+      ov.hidden = !ov.hidden;
+      clearInterval(boardTimer);
+      if (!ov.hidden) {
+        if (!slides.some((s) => s.type === 'lock')) toast('This case has no padlocks yet, so the board will stay empty.', 'warn');
+        ov.innerHTML = '<div class="board"><p class="board-sub">Loading crews…</p></div>';
+        paintBoard();
+        boardTimer = setInterval(paintBoard, 4000);
+      }
+    }
+    $('#p-board').addEventListener('click', toggleBoard);
     const exit = () => {
       clearInterval(tick);
+      clearInterval(boardTimer);
       document.onkeydown = null;
       if (document.fullscreenElement) document.exitFullscreen?.();
       document.body.classList.remove('presenting');
@@ -2477,6 +2904,7 @@ async function presentMode(id, start) {
       else if (k.toLowerCase() === 'f') full();
       else if (k.toLowerCase() === 't') toggleTimer();
       else if (k.toLowerCase() === 'r') resetTimer();
+      else if (k.toLowerCase() === 's') toggleBoard();
       else if (k === 'Escape' && !document.fullscreenElement) exit();
     };
     const wake = () => {
