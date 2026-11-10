@@ -675,6 +675,56 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
 .view-bar .view-note { font-weight: 400; opacity: .75; }
 .view-bar .stamp-btn { margin-left: auto; }
 @media (max-width: 700px) { .view-bar .view-note { display: none; } .view-bar .stamp-btn { margin-left: 0; } }
+/* ---- teaching slides: briefing, key words, worked example, video watch-for ---- */
+.s-h3 { font-family: var(--type); font-weight: 400; font-size: 70px; line-height: 1.02; margin: 0 0 24px; }
+.s-h3.on-kraft { margin: 26px 0 30px; }
+ .s-tgrid { display: grid; grid-template-columns: 1fr 470px; gap: 54px; margin-top: 34px; align-items: start; }
+ .s-tgrid.solo { grid-template-columns: 1fr; max-width: 1300px; }
+.s-teach-main { padding: 44px 52px 40px; transform: rotate(-0.8deg); }
+.s-teach-main .s-rich { font-size: 35px; line-height: 1.42; }
+.s-teach-main .s-rich p { margin: 0 0 0.6em; }
+.s-teach-side { display: flex; flex-direction: column; gap: 34px; padding-top: 8px; }
+.s-key { background: var(--ink); color: var(--paper); padding: 30px 34px 30px; transform: rotate(1.6deg); box-shadow: 0 16px 30px rgba(60, 35, 10, 0.4); }
+.s-key b, .s-eg b, .s-why b, .s-watch b { display: block; font-size: 24px; letter-spacing: 0.22em; margin-bottom: 12px; }
+.s-key b { color: var(--yellow); }
+.s-key p { font-family: var(--type); font-size: 42px; line-height: 1.12; margin: 0; }
+.s-eg { background: var(--memo); padding: 26px 32px; transform: rotate(-1.4deg); box-shadow: 0 12px 24px rgba(60, 35, 10, 0.35); }
+.s-eg b { color: var(--red); }
+.s-eg p { font-size: 31px; line-height: 1.35; margin: 0; }
+.s-vgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px 40px; }
+.s-vgrid.n1, .s-vgrid.n2 { grid-template-columns: 1fr; max-width: 1100px; }
+.s-vgrid.n3 { grid-template-columns: repeat(3, 1fr); }
+.s-vcard { background: var(--paper-2); padding: 26px 32px 28px; box-shadow: 0 12px 24px rgba(60, 35, 10, 0.32); transform: rotate(var(--t)); border-top: 14px solid var(--red); }
+.s-vcard b { display: block; font-family: var(--type); font-weight: 400; font-size: 50px; line-height: 1; margin-bottom: 12px; }
+.s-vcard span { font-size: 31px; line-height: 1.3; display: block; }
+.s-vgrid.n3 .s-vcard { min-height: 420px; }
+.s-vgrid.n3 .s-vcard b { font-size: 56px; }
+.s-vgrid.n3 .s-vcard span { font-size: 34px; }
+.s-mgrid { display: grid; grid-template-columns: 1fr 90px 1fr; align-items: stretch; gap: 0; }
+.s-mcard { position: relative; background: var(--paper); padding: 56px 38px 34px; box-shadow: 0 14px 28px rgba(60, 35, 10, 0.35); }
+.s-mcard p { font-size: 36px; line-height: 1.32; margin: 0; }
+.s-mcard.weak { transform: rotate(-1.2deg); }
+.s-mcard.weak p { color: #4A423A; }
+.s-mcard.strong { transform: rotate(1deg); outline: 7px solid var(--ok); outline-offset: -7px; }
+.s-mlabel { position: absolute; top: -22px; left: 28px; font-family: var(--type); font-size: 34px; padding: 6px 18px 2px; color: #fff; background: var(--red); transform: rotate(-2deg); }
+.s-mcard.strong .s-mlabel { background: var(--ok); }
+.s-marrow { display: flex; align-items: center; justify-content: center; font-size: 80px; color: var(--ink); font-weight: 700; }
+.s-why { margin-top: 40px; background: var(--ink); color: var(--paper); padding: 24px 34px; transform: rotate(-0.5deg); }
+.s-why b { color: var(--yellow); margin-bottom: 6px; }
+.s-why .s-rich { font-size: 31px; line-height: 1.35; }
+.s-why .s-rich p, .s-why .s-rich ul { margin: 0; }
+.s-vtitle { display: inline-block; vertical-align: top; margin: 4px 0 0 26px; font-family: var(--type); font-weight: 400; font-size: 44px; line-height: 1.1; color: var(--paper); max-width: 1100px; }
+.s-video.with-watch { left: 90px; right: 590px; top: 170px; bottom: auto; aspect-ratio: 16 / 9; }
+.s-watch { position: absolute; right: 90px; top: 170px; width: 460px; background: var(--memo); color: var(--ink); padding: 30px 34px 26px; transform: rotate(1.4deg); box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4); }
+.s-watch b { color: var(--red); }
+.s-watch ol { margin: 0; padding-left: 1.2em; font-size: 31px; line-height: 1.3; }
+.s-watch li { margin-bottom: 14px; }
+.s-credit { font-size: 22px; color: var(--muted); margin: 10px 0 0 !important; }
+/* teacher script */
+.t-notes { margin: 8px 0 26px; padding: 12px 16px; background: #1A1A1A; color: #F3EDE2; font-size: 15px; line-height: 1.45; border-left: 6px solid var(--yellow); }
+.t-notes b { color: var(--yellow); letter-spacing: .12em; font-size: 12px; display: block; margin-bottom: 2px; }
+.p-notes { position: absolute; left: 0; right: 0; bottom: 56px; max-height: 34vh; overflow: auto; background: rgba(20, 18, 16, 0.96); color: #F3EDE2; padding: 14px 22px; font: 400 18px/1.5 'Courier Prime', monospace; border-top: 4px solid var(--yellow); z-index: 5; white-space: pre-wrap; }
+.p-notes b { color: var(--yellow); letter-spacing: .12em; font-size: 13px; display: block; }
 </style>
 </head>
 <body>
@@ -683,7 +733,7 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
   </main>
   <div id="overlay" class="overlay" hidden></div>
   <div id="toast" class="toast" role="status" hidden></div>
-  <div id="build" class="build-tag">Version 10 Nov 20:46</div>
+  <div id="build" class="build-tag">Version 10 Nov 21:06</div>
   <noscript>Thrive City Case Files needs JavaScript turned on.</noscript>
   <script type="module">
 // ===== core.js =====
@@ -1124,6 +1174,9 @@ const GRAPHIC_GROUPS = [["Stamps", ["case-closed", "top-secret", "classified", "
 const SLIDE_TYPES = {
   title:       { label: 'Title', phase: null, dark: false },
   hook:        { label: 'Hook', phase: 'hook', dark: true, minutes: 5 },
+  teach:       { label: 'Briefing (teach it)', phase: 'intel', dark: false },
+  vocab:       { label: 'Key words', phase: 'intel', dark: false },
+  model:       { label: 'Worked example', phase: 'intel', dark: false },
   intel:       { label: 'Intel card', phase: 'intel', dark: false },
   picture:     { label: 'Picture', phase: 'intel', dark: false },
   video:       { label: 'Video', phase: 'intel', dark: true },
@@ -1137,7 +1190,7 @@ const SLIDE_TYPES = {
   lock:        { label: 'Padlock', phase: 'investigate', dark: false },
   twist:       { label: 'Plot twist', phase: null, dark: true },
 };
-const ADDABLE = ['lock', 'twist', 'objectives', 'intel', 'picture', 'video', 'question', 'check', 'timer', 'hook', 'investigate', 'debrief', 'title'];
+const ADDABLE = ['teach', 'video', 'vocab', 'model', 'lock', 'twist', 'objectives', 'intel', 'picture', 'question', 'check', 'timer', 'hook', 'investigate', 'debrief', 'title'];
 const LAYOUTS = [['pin', 'Pinned photo'], ['half', 'Half and half'], ['bg', 'Full background'], ['sticker', 'Corner sticker']];
 
 function newSlide(type, c = {}) {
@@ -1145,6 +1198,9 @@ function newSlide(type, c = {}) {
   if (type === 'title') { s.heading = c.title || 'New case'; s.text = 'New case file opened'; }
   if (type === 'hook') { s.text = 'Witnesses report…'; s.heading = '“A quote or a mystery”'; s.question = 'The big question?'; s.minutes = 5; }
   if (type === 'intel') { s.heading = 'New intel'; s.text = 'Your teaching point.\n\nUse a line starting with - for each point, and 2 to 4 points become pinned cards:\n- First point\n- Second point'; }
+  if (type === 'teach') { s.heading = 'The big idea'; s.text = 'Explain it the way you would say it. Two or three short paragraphs.'; s.key = 'The one sentence they must remember.'; s.example = ''; }
+  if (type === 'vocab') { s.heading = 'Key words'; s.text = 'Word: what it means\nWord: what it means\nWord: what it means'; }
+  if (type === 'model') { s.heading = 'Watch me fix it'; s.beforeLabel = 'Before'; s.before = 'The weak version'; s.afterLabel = 'After'; s.after = 'The strong version'; s.text = 'What changed, and why it’s better.'; }
   if (type === 'picture') { s.heading = 'Exhibit A'; }
   if (type === 'video') { s.heading = 'Surveillance footage'; s.url = ''; }
   if (type === 'question') { s.heading = 'Turn and tell: …?'; s.text = ''; }
@@ -1222,7 +1278,10 @@ function slideTags(slides) {
       case 'hook': return `HOOK${mins ? ` · ${mins} MIN` : ''}`;
       case 'intel': return of > 1 ? `INTEL FILE ${n} OF ${of}` : 'INTEL FILE';
       case 'picture': return 'EXHIBIT';
-      case 'video': return 'SURVEILLANCE FOOTAGE';
+      case 'video': return `SURVEILLANCE FOOTAGE${s.length ? ` · ${s.length} MIN` : ''}`;
+      case 'teach': return of > 1 ? `BRIEFING ${n} OF ${of}` : 'BRIEFING';
+      case 'vocab': return 'KEY WORDS';
+      case 'model': return 'WORKED EXAMPLE';
       case 'question': return 'TURN AND TELL';
       case 'check': return 'INTEL CHECK';
       case 'investigate': return `INVESTIGATE${mins ? ` · ${mins} MIN` : ''}`;
@@ -1297,11 +1356,35 @@ function renderSlide(s, c, opts = {}) {
           <div class="s-cards n${pts.length}">${pts.map((p, i) => `<div class="s-card" style="--t:${[-2, 1.5, -1, 2][i]}deg"><span class="s-pin"></span><b>${pad2(i + 1)}</b><span>${esc(p)}</span></div>`).join('')}</div>`;
       } else {
         inner = `${tagHtml}<div class="s-content lay-${img.layout || 'none'}">
-          <div class="s-paper"><span class="s-pin"></span><h1 class="s-h2">${esc(s.heading)}</h1><div class="s-rich">${richText(s.text)}</div></div>
+          <div class="s-paper" data-fitbox><span class="s-pin"></span><h1 class="s-h2">${esc(s.heading)}</h1><div class="s-rich" data-fit="24">${richText(s.text)}</div></div>
         </div>${img.html}`;
       }
       break;
     }
+    case 'teach':
+      inner = `${tagHtml}<div class="s-tgrid ${s.key || s.example ? '' : 'solo'}">
+        <div class="s-paper s-teach-main" data-fitbox><span class="s-pin"></span><h1 class="s-h3">${esc(s.heading)}</h1><div class="s-rich" data-fit="22">${richText(s.text)}</div></div>
+        ${s.key || s.example ? `<div class="s-teach-side">
+          ${s.key ? `<aside class="s-key"><b>KEY IDEA</b><p>${esc(s.key)}</p></aside>` : ''}
+          ${s.example ? `<aside class="s-eg" data-fitbox><b>FOR EXAMPLE</b><p data-fit="22">${esc(s.example)}</p></aside>` : ''}
+        </div>` : ''}
+      </div>`;
+      break;
+    case 'vocab': {
+      const words = String(s.text || '').split('\n').map((l) => l.trim()).filter(Boolean).map((l) => { const k = l.indexOf(':'); return k > 0 ? [l.slice(0, k).trim(), l.slice(k + 1).trim()] : [l, '']; }).slice(0, 6);
+      inner = `${tagHtml}${s.heading && !/^key words$/i.test(s.heading.trim()) ? `<h1 class="s-h3 on-kraft">${esc(s.heading)}</h1>` : '<div style="height:40px"></div>'}
+        <div class="s-vgrid n${words.length}">${words.map(([w, d], i) => `<div class="s-vcard" style="--t:${[-1.2, 1, -0.6, 1.4, -1, 0.8][i]}deg"><b>${esc(w)}</b><span>${esc(d)}</span></div>`).join('')}</div>`;
+      break;
+    }
+    case 'model':
+      inner = `${tagHtml}<h1 class="s-h3 on-kraft">${esc(s.heading)}</h1>
+        <div class="s-mgrid">
+          <div class="s-mcard weak"><span class="s-mlabel">${esc(s.beforeLabel || 'Before')}</span><p>${esc(s.before || '')}</p></div>
+          <div class="s-marrow" aria-hidden="true">→</div>
+          <div class="s-mcard strong"><span class="s-mlabel">${esc(s.afterLabel || 'After')}</span><p>${esc(s.after || '')}</p></div>
+        </div>
+        ${s.text ? `<div class="s-why" data-fitbox><b>WHAT CHANGED</b><div class="s-rich" data-fit="22">${richText(s.text)}</div></div>` : ''}`;
+      break;
     case 'picture':
       inner = `${tagHtml}<div class="s-picture">${safeUrl(s.image?.url)
         ? `<figure><img src="${esc(s.image.url)}" alt="${esc(s.heading || '')}" draggable="false"><figcaption>${esc(s.heading || '')}</figcaption></figure>`
@@ -1310,10 +1393,11 @@ function renderSlide(s, c, opts = {}) {
     case 'video': {
       const emb = videoEmbed(s.url);
       const live = emb && (opts.mode === 'present' || opts.mode === 'student');
-      inner = `${tagHtml}<div class="s-video">${live
+      const watch = bulletsOf(s.watchFor) || (s.watchFor ? [s.watchFor] : null);
+      inner = `${tagHtml}<h1 class="s-vtitle">${esc(s.heading || '')}</h1><div class="s-video ${watch ? 'with-watch' : ''}">${live
         ? `<iframe src="${esc(emb)}" title="${esc(s.heading || 'Video')}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe>`
         : `<div class="s-video-ph"><svg viewBox="0 0 70 70" width="140" height="140" aria-hidden="true"><circle cx="35" cy="35" r="32" fill="none" stroke="#C8A473" stroke-width="4"/><path d="M28 22L50 35L28 48Z" fill="#C8A473"/></svg>
-            <p>${safeUrl(s.url) ? (emb ? esc(s.heading || 'Video') : `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Open the video ↗</a>`) : 'Paste a YouTube, Vimeo, Canva or Google Slides link'}</p></div>`}</div>`;
+            <p>${safeUrl(s.url) ? (emb ? esc(s.heading || 'Video') : `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Open the video ↗</a>`) : 'Paste a YouTube, Vimeo, Canva or Google Slides link'}</p></div>`}</div>${watch ? `<aside class="s-watch" data-fitbox><b>WATCH FOR</b><ol data-fit="22">${watch.map((w) => `<li>${esc(w)}</li>`).join('')}</ol>${s.credit ? `<p class="s-credit">${esc(s.credit)}</p>` : ''}</aside>` : ''}`;
       break;
     }
     case 'question':
@@ -1410,6 +1494,24 @@ function fitSlides(root = document) {
     const k = Math.min(f.clientWidth / 1600, f.clientHeight ? f.clientHeight / 900 : Infinity);
     f.style.setProperty('--k', k);
     frameObserver.observe(f);
+    if (k > 0) shrinkToFit(f, k);
+  });
+}
+// Long text on a slide shrinks until its box sits inside the 900px stage
+function shrinkToFit(f, k) {
+  const slide = $('.slide', f);
+  if (!slide) return;
+  const top = slide.getBoundingClientRect().top;
+  $$('[data-fit]', slide).forEach((el) => {
+    el.style.fontSize = '';
+    const box = el.closest('[data-fitbox]') || el;
+    let fs = parseFloat(getComputedStyle(el).fontSize);
+    const min = Number(el.dataset.fit) || 20;
+    let guard = 30;
+    while (guard-- > 0 && fs > min && (box.getBoundingClientRect().bottom - top) / k > 838) {
+      fs -= 1.5;
+      el.style.fontSize = `${fs}px`;
+    }
   });
 }
 
@@ -1944,7 +2046,7 @@ async function studentCase(id) {
       : s.type === 'check'
       ? `<div class="check-wrap" data-check="${i}">${slideFrame(s, c, { mode: 'student', tag: tags[i], interactive: !passed.has(i) && !sub, reveal: passed.has(i) || !!sub })}
           <p class="check-msg" id="cm-${i}" aria-live="polite">${passed.has(i) || sub ? '<b class="ok-text">Intel confirmed.</b>' : 'Tap an answer.'}</p></div>`
-      : slideFrame(s, c, { mode: 'student', tag: tags[i] }))).join('');
+      : slideFrame(s, c, { mode: 'student', tag: tags[i] })) + (isT && s.notes ? `<p class="t-notes"><b>YOUR SCRIPT · TEACHERS ONLY</b>${esc(s.notes)}</p>` : '')).join('');
 
     const hook = inPhase('hook');
     const intel = inPhase('intel');
@@ -1955,7 +2057,7 @@ async function studentCase(id) {
     const urls = await signUrls(sub ? [sub] : []);
     const crewHtml = isT ? '' : await crewCard(c.week || 0);
     const verdict = sub && (sub.feedback || sub.sticker || sub.status !== 'submitted') ? verdictCard(sub, c) : '';
-    const phases = [['hook', 'Hook', hook.length], ['intel', 'Intel', intel.length], ['investigate', 'Investigate', inv.length || steps.length], ['debrief', 'Debrief', deb.length], ['capture', 'Capture', 1]].filter((p) => p[2]);
+    const phases = [['hook', 'Hook', hook.length], ['intel', 'Briefing', intel.length], ['investigate', 'Investigate', inv.length || steps.length], ['debrief', 'Debrief', deb.length], ['capture', 'Capture', 1]].filter((p) => p[2]);
 
     shell(isT ? 'cases' : 'map', `
       <div class="case-top">
@@ -1978,7 +2080,7 @@ async function studentCase(id) {
         ${phases.map(([k, l], i) => `<a href="#ph-${k}" data-phase="${k}"><b>${i + 1}</b> ${l}</a>`).join('')}
       </nav>
       ${hook.length ? `<section class="phase" id="ph-hook"><h2 class="phase-title">Hook</h2>${frames(hook)}</section>` : ''}
-      ${intel.length ? `<section class="phase" id="ph-intel"><div class="phase-band"><h2>Intel · top secret training</h2><p>This is the lesson. Reread it any time.</p></div>${frames(intel)}</section>` : ''}
+      ${intel.length ? `<section class="phase" id="ph-intel"><div class="phase-band"><h2>Briefing · learn it</h2><p>This is the lesson. Watch, read and come back to it any time.</p></div>${frames(intel)}</section>` : ''}
       ${inv.length || steps.length ? `<section class="phase ${unlocked() ? '' : 'locked'}" id="ph-investigate">
         <h2 class="phase-title">Investigate</h2>
         <p class="lock-note" ${unlocked() ? 'hidden' : ''}>Locked. Answer the intel check${checks.length > 1 ? 's' : ''} above to open the investigation.</p>
@@ -2009,7 +2111,7 @@ async function studentCase(id) {
         const right = pick === Number(s.answer);
         if (right) { passed.add(i); store(checkKey, [...passed]); }
         w.querySelector('.slide-frame').innerHTML = renderSlide(s, c, { mode: 'student', tag: tags[i], interactive: !right, reveal: right, picked: pick });
-        $(`#cm-${i}`).innerHTML = right ? '<b class="ok-text">Intel confirmed.</b>' : '<b class="bad-text">Not quite.</b> Reread the intel above and try again.';
+        $(`#cm-${i}`).innerHTML = right ? '<b class="ok-text">Intel confirmed.</b>' : '<b class="bad-text">Not quite.</b> Reread the briefing above and try again.';
         if (right && unlocked()) {
           const ph = $('#ph-investigate');
           if (ph) { ph.classList.remove('locked'); $('.lock-note', ph).hidden = true; }
@@ -2737,7 +2839,10 @@ function buildEditor(c, waiting) {
     if (t === 'hook') f = field('text', 'Set the scene', { area: true }) + field('heading', 'Big quote or mystery line') + field('question', 'Question on the yellow banner') + field('minutes', 'Timer (minutes, 0 for none)', { type: 'number' });
     if (t === 'intel') f = field('heading', 'Heading') + field('text', 'Text', { area: true, rows: 6, hint: 'Start lines with - for bullet points. 2 to 4 bullet points with no photo become pinned cards.' });
     if (t === 'picture') f = field('heading', 'Caption');
-    if (t === 'video') f = field('heading', 'Title') + field('url', 'Video link', { ph: 'https://www.youtube.com/watch?v=…', hint: 'YouTube, Vimeo, Canva or Google Slides links play on the slide. Other links show an “Open” button.' });
+    if (t === 'teach') f = field('heading', 'Heading') + field('text', 'Explain it', { area: true, rows: 7, hint: 'Write it the way you’d say it to the class. Leave a blank line between paragraphs. Lines starting with - become bullet points.' }) + field('key', 'Key idea (black card)', { area: true, rows: 2, max: 160, hint: 'The one sentence they must remember.' }) + field('example', 'For example (yellow note, optional)', { area: true, rows: 2, max: 240 });
+    if (t === 'vocab') f = field('heading', 'Heading', { ph: 'Key words' }) + field('text', 'Words and meanings', { area: true, rows: 6, hint: 'One per line, like this: Persistence: keeping going when it gets hard. Up to 6.' });
+    if (t === 'model') f = field('heading', 'Heading', { ph: 'Watch me fix it' }) + field('beforeLabel', 'Left label', { ph: 'Before' }) + field('before', 'Left card: the weak version', { area: true, rows: 3, max: 400 }) + field('afterLabel', 'Right label', { ph: 'After' }) + field('after', 'Right card: the strong version', { area: true, rows: 3, max: 400 }) + field('text', 'What changed (black strip)', { area: true, rows: 3, max: 400 });
+    if (t === 'video') f = field('heading', 'Title') + field('url', 'Video link', { ph: 'https://www.youtube.com/watch?v=…', hint: 'YouTube, Vimeo, Canva or Google Slides links play on the slide. Other links show an “Open” button.' }) + field('watchFor', 'Watch for (yellow note beside the video)', { area: true, rows: 3, hint: 'Start each line with - . Give them 2 or 3 things to listen for.' }) + field('length', 'Length (minutes)', { type: 'number' }) + field('credit', 'Credit', { ph: 'e.g. TED-Ed' });
     if (t === 'question') f = field('heading', 'Question') + field('text', 'Extra prompt (optional)', { area: true, rows: 2 });
     if (t === 'check') {
       f = field('heading', 'Question') + `<fieldset class="opts"><legend>Answers <span class="muted">· tick the right one</span></legend>
@@ -2795,7 +2900,7 @@ function buildEditor(c, waiting) {
       <div class="b-ed-head"><p class="b-sec">Editing slide ${sel + 1} · ${esc(SLIDE_TYPES[t]?.label)}</p>
         <label class="inline small">Slide type <select id="s-type">${Object.entries(SLIDE_TYPES).map(([k, v]) => `<option value="${k}" ${k === t ? 'selected' : ''}>${esc(v.label)}</option>`).join('')}</select></label></div>
       <div class="b-ed">
-        <div class="b-fields">${f}${photo}${graphics}</div>
+        <div class="b-fields">${f}${t === 'capture' ? '' : field('notes', 'Teacher script <span class="muted">· only teachers see this. In Present mode press N.</span>', { area: true, rows: 3, max: 2000 })}${photo}${graphics}</div>
         <div class="b-preview"><p class="b-sub">Slide preview</p><div class="slide-frame big" id="preview"></div>
           <p class="hint">This is exactly what the projector shows.</p></div>
       </div>`;
@@ -3021,6 +3126,7 @@ async function presentMode(id, start) {
     }
     let i = Math.max(0, Math.min(slides.length - 1, Number(start) || 0));
     let reveal = false;
+    let notesOn = false;
     const timers = {};
     let tick = null;
     let idle = null;
@@ -3030,6 +3136,7 @@ async function presentMode(id, start) {
       <div class="present" id="present">
         <div class="present-stage"><div class="slide-frame present-frame" id="pframe"></div></div>
         <div class="crew-overlay" id="crew-overlay" hidden></div>
+        <div class="p-notes" id="p-notes" hidden></div>
         <div class="present-bar" id="pbar">
           <button type="button" id="p-exit" aria-label="Exit">✕ Exit</button>
           <button type="button" id="p-prev" aria-label="Previous slide">◀</button>
@@ -3038,7 +3145,8 @@ async function presentMode(id, start) {
           <span class="p-timer" id="p-timer"></span>
           <button type="button" id="p-full">Full screen (F)</button>
           <button type="button" id="p-board">Crew board (S)</button>
-          <span class="p-help">← → or clicker to move · T timer · R reset · S crew board</span>
+          <button type="button" id="p-notes-btn">Script (N)</button>
+          <span class="p-help">← → or clicker to move · T timer · R reset · S crew board · N your script</span>
         </div>
       </div>`;
 
@@ -3078,6 +3186,9 @@ async function presentMode(id, start) {
       const t = timerFor(i);
       $('#pframe').innerHTML = renderSlide(slides[i], c, { mode: 'present', tag: tags[i], reveal, open: slides[i].type === 'lock' && reveal, code: codes[slides[i].id], timerSecs: t ? t.left : undefined });
       $('#p-count').textContent = `${i + 1} / ${slides.length} · ${SLIDE_TYPES[slides[i].type]?.label || ''}`;
+      const pn = $('#p-notes');
+      pn.innerHTML = `<b>YOUR SCRIPT · SLIDE ${i + 1}</b>${slides[i].notes ? esc(slides[i].notes) : '<span style="opacity:.6">No script for this slide.</span>'}`;
+      pn.hidden = !notesOn;
       fitSlides($('#present'));
       paintTimer();
     }
@@ -3129,6 +3240,8 @@ async function presentMode(id, start) {
       }
     }
     $('#p-board').addEventListener('click', toggleBoard);
+    const toggleNotes = () => { notesOn = !notesOn; $('#p-notes').hidden = !notesOn; };
+    $('#p-notes-btn').addEventListener('click', toggleNotes);
     const exit = () => {
       clearInterval(tick);
       clearInterval(boardTimer);
@@ -3152,6 +3265,7 @@ async function presentMode(id, start) {
       else if (k.toLowerCase() === 't') toggleTimer();
       else if (k.toLowerCase() === 'r') resetTimer();
       else if (k.toLowerCase() === 's') toggleBoard();
+      else if (k.toLowerCase() === 'n') toggleNotes();
       else if (k === 'Escape' && !document.fullscreenElement) exit();
     };
     const wake = () => {
