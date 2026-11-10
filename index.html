@@ -644,6 +644,19 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
 
 .folio-nav{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 16px}
 .folio-step{margin-left:auto;display:flex;gap:8px}
+
+/* evidence viewer */
+.viewer{position:fixed;inset:0;z-index:80;background:rgba(15,12,10,.92);display:flex;flex-direction:column}
+.viewer-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 16px;background:#1A1A1A;color:#F4EFE6}
+.viewer-bar b{font-family:'Special Elite',monospace;font-size:1.1rem;margin-right:auto;word-break:break-all}
+.viewer-bar .muted{color:#BBB}
+.viewer-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px}
+.viewer-stage img{max-width:100%;max-height:100%;object-fit:contain;background:#FFF;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.viewer-stage iframe{width:min(1000px,100%);height:100%;border:0;background:#FFF}
+.viewer-doc{background:#F4EFE6;padding:24px;text-align:center}
+.viewer-arrow{flex:none;width:48px;height:72px;font-size:2.4rem;line-height:1;border:0;background:rgba(255,255,255,.15);color:#FFF;cursor:pointer;border-radius:6px}
+.viewer-arrow:hover{background:rgba(255,255,255,.3)}
+@media (max-width:600px){.viewer-arrow{position:absolute;bottom:20px;width:56px;height:56px}.viewer-arrow.prev{left:16px}.viewer-arrow.next{right:16px}}
 </style>
 </head>
 <body>
@@ -829,7 +842,7 @@ function evidenceHtml(list, urls, link) {
       : `<span class="ev-doc"><b>${fileTag(e.type)}</b><small>${esc(e.name)}</small></span>`;
     const body = `${inner}<span class="ev-cap">${esc(e.name)}</span>`;
     return u
-      ? `<a class="polaroid" style="--t:${tilt[i % 4]}deg" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${body}</a>`
+      ? `<a class="polaroid" style="--t:${tilt[i % 4]}deg" href="${esc(u)}" target="_blank" rel="noopener noreferrer" data-view="${esc(u)}" data-vname="${esc(e.name)}" data-vtype="${esc(e.type || '')}">${body}</a>`
       : `<span class="polaroid" style="--t:${tilt[i % 4]}deg">${body}</span>`;
   });
   if (safeUrl(link)) items.push(`<a class="polaroid link" style="--t:2deg" href="${esc(link)}" target="_blank" rel="noopener noreferrer"><span class="ev-doc"><b>LINK</b><small>Open ↗</small></span><span class="ev-cap">Linked evidence</span></a>`);
@@ -982,6 +995,50 @@ async function codeHash(slideId, code) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${slideId}:${normCode(code)}`));
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+
+// ---------- Evidence viewer: click any piece of evidence to see it full size ----------
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-view]');
+  if (!a || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  e.preventDefault();
+  const board = a.closest('.evidence-board');
+  const all = board ? [...board.querySelectorAll('[data-view]')] : [a];
+  let i = all.indexOf(a);
+  const box = document.createElement('div');
+  box.className = 'viewer';
+  box.setAttribute('role', 'dialog');
+  box.setAttribute('aria-modal', 'true');
+  const show = () => {
+    const el = all[i];
+    const u = el.dataset.view; const name = el.dataset.vname || 'Evidence'; const type = el.dataset.vtype || '';
+    const isImg = showsAsImage(type) || /\.(jpe?g|png|gif|webp|heic)$/i.test(name);
+    const isPdf = /pdf/.test(type) || /\.pdf$/i.test(name);
+    box.innerHTML = `<div class="viewer-bar"><b>${esc(name)}</b><span class="muted">${i + 1} of ${all.length}</span>
+        <a class="stamp-btn small ghost" href="${esc(u)}" target="_blank" rel="noopener noreferrer" download>Open / download</a>
+        <button type="button" class="stamp-btn small" data-vclose>Close ✕</button></div>
+      <div class="viewer-stage">
+        ${all.length > 1 ? '<button type="button" class="viewer-arrow prev" data-vprev aria-label="Previous">‹</button>' : ''}
+        ${isImg ? `<img src="${esc(u)}" alt="${esc(name)}">` : isPdf ? `<iframe src="${esc(u)}" title="${esc(name)}"></iframe>`
+          : `<div class="viewer-doc"><p>This file type can’t be shown here.</p><a class="stamp-btn" href="${esc(u)}" target="_blank" rel="noopener noreferrer">Open ${esc(name)}</a></div>`}
+        ${all.length > 1 ? '<button type="button" class="viewer-arrow next" data-vnext aria-label="Next">›</button>' : ''}
+      </div>`;
+  };
+  const close = () => { box.remove(); document.removeEventListener('keydown', key, true); a.focus(); };
+  const key = (ev) => {
+    if (ev.key === 'Escape') { ev.stopPropagation(); close(); }
+    if (ev.key === 'ArrowRight' && all.length > 1) { i = (i + 1) % all.length; show(); }
+    if (ev.key === 'ArrowLeft' && all.length > 1) { i = (i - 1 + all.length) % all.length; show(); }
+  };
+  box.addEventListener('click', (ev) => {
+    if (ev.target === box || ev.target.closest('[data-vclose]')) close();
+    else if (ev.target.closest('[data-vnext]')) { i = (i + 1) % all.length; show(); }
+    else if (ev.target.closest('[data-vprev]')) { i = (i - 1 + all.length) % all.length; show(); }
+  });
+  document.addEventListener('keydown', key, true);
+  show();
+  document.body.appendChild(box);
+  box.querySelector('[data-vclose]').focus();
+});
 
 // ===== graphics.js =====
 // Case graphics bank: original drawings, 160x160 viewBox
