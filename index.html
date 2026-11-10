@@ -725,6 +725,15 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
 .t-notes b { color: var(--yellow); letter-spacing: .12em; font-size: 12px; display: block; margin-bottom: 2px; }
 .p-notes { position: absolute; left: 0; right: 0; bottom: 56px; max-height: 34vh; overflow: auto; background: rgba(20, 18, 16, 0.96); color: #F3EDE2; padding: 14px 22px; font: 400 18px/1.5 'Courier Prime', monospace; border-top: 4px solid var(--yellow); z-index: 5; white-space: pre-wrap; }
 .p-notes b { color: var(--yellow); letter-spacing: .12em; font-size: 13px; display: block; }
+/* student: edit or delete an entry */
+.entry-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--rule); }
+.case-file .entry-actions { justify-content: flex-end; }
+.entry-del { margin: 14px 0 0; text-align: right; }
+.edited-flag { margin: 14px 0 0; padding: 8px 12px; background: var(--memo); border-left: 5px solid var(--ink); font-size: 15px; font-weight: 700; }
+.confirm-dialog { text-align: left; }
+.confirm-dialog h2 { font-family: var(--type); font-weight: 400; font-size: 30px; margin: 0 0 12px; }
+.confirm-dialog .row-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 18px; }
+.stamp-btn.danger-btn { background: var(--red); }
 </style>
 </head>
 <body>
@@ -733,7 +742,7 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
   </main>
   <div id="overlay" class="overlay" hidden></div>
   <div id="toast" class="toast" role="status" hidden></div>
-  <div id="build" class="build-tag">Version 10 Nov 21:06</div>
+  <div id="build" class="build-tag">Version 10 Nov 21:17</div>
   <noscript>Thrive City Case Files needs JavaScript turned on.</noscript>
   <script type="module">
 // ===== core.js =====
@@ -2005,7 +2014,7 @@ function drawString() {
 }
 
 // ---------- One case --------------------------------------------------------
-async function studentCase(id) {
+async function studentCase(id, extra) {
   const isT = me.role === 'teacher';
   loadingPage(isT ? 'cases' : 'map');
   try {
@@ -2183,24 +2192,33 @@ async function studentCase(id) {
         <p class="muted">In her own login this is where she uploads up to 3 photos or files and answers:</p><ol>${prompts.map((p) => `<li>${esc(p)}</li>`).join('')}</ol></section>`;
       return;
     }
-    if (!editable) {
+    const readOnly = () => {
       $('#capture').innerHTML = `<section class="paper">
         <p class="eyebrow">MY EVIDENCE</p>${evidenceHtml(sub.evidence, urls, sub.link) || '<p class="muted">No evidence attached.</p>'}
         <p class="eyebrow">MY CASE NOTES</p>
         ${prompts.map((p, i) => `<h3 class="q">${esc(p)}</h3><p class="a">${esc(sub.answers?.[i] || '')}</p>`).join('')}
-        <p class="muted">${sub.status === 'approved' ? 'Case closed.' : 'Filed. Waiting for your teacher to read it.'}</p></section>`;
+        <p class="muted">${sub.status === 'approved' ? 'Case closed.' : 'Filed. Waiting for your teacher to read it.'}</p>
+        ${me.viewing ? '' : `<div class="entry-actions"><button type="button" class="stamp-btn small" id="cap-edit">Edit my case file</button>
+          <button type="button" class="link-btn danger" id="cap-del">Delete this entry</button></div>`}</section>`;
+      $('#cap-edit')?.addEventListener('click', () => captureForm(c, sub, prompts, urls, readOnly));
+      $('#cap-del')?.addEventListener('click', () => deleteEntry(sub, c));
+    };
+    if (!editable) {
+      if (extra === 'edit' && !me.viewing) { captureForm(c, sub, prompts, urls, readOnly); $('#capture').scrollIntoView(); return; }
+      readOnly();
       return;
     }
-    captureForm(c, sub, prompts, urls);
+    captureForm(c, sub, prompts, urls, null);
   } catch (e) { errorPage(me.role === 'teacher' ? 'cases' : 'map', e); }
 }
 
-function captureForm(c, sub, prompts, urls) {
+function captureForm(c, sub, prompts, urls, onCancel) {
   const kept = [...(sub?.evidence || [])];
   const removed = [];
   const pending = [];
   const answers = sub?.answers || [];
-  const label = sub ? 'Re-file my case notes' : 'File my case notes';
+  const closed = sub?.status === 'approved';
+  const label = !sub ? 'File my case notes' : sub.status === 'try_again' ? 'Re-file my case notes' : 'Save changes';
   $('#capture').innerHTML = `
     <form id="cap-form" novalidate>
       <section class="paper pinned">
@@ -2221,8 +2239,10 @@ function captureForm(c, sub, prompts, urls) {
           <textarea id="a${i}" class="lined" rows="4" maxlength="2000">${esc(answers[i] || '')}</textarea>`).join('')}
         <div class="row-actions">
           <button class="stamp-btn big" type="submit" id="file-it">${label}</button>
-          <span class="muted">+${c.xp} XP when your teacher closes the case</span>
+          ${onCancel ? '<button type="button" class="stamp-btn ghost" id="cap-cancel">Cancel</button>' : ''}
+          <span class="muted">${closed ? 'Your case stays closed. Your teacher will see that you updated it.' : `+${c.xp} XP when your teacher closes the case`}</span>
         </div>
+        ${sub ? '<p class="entry-del"><button type="button" class="link-btn danger" id="cap-del2">Delete this entry</button></p>' : ''}
       </section>
     </form>`;
 
@@ -2273,6 +2293,8 @@ function captureForm(c, sub, prompts, urls) {
   });
   linkInput.addEventListener('input', refresh);
   refresh();
+  $('#cap-cancel')?.addEventListener('click', () => onCancel());
+  $('#cap-del2')?.addEventListener('click', () => deleteEntry(sub, c));
 
   $('#cap-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -2298,11 +2320,12 @@ function captureForm(c, sub, prompts, urls) {
       btn.textContent = 'Filing…';
       const payload = { answers: vals, link: link || null, evidence: [...kept, ...uploaded] };
       const { error: err } = sub
-        ? await sb.from('submissions').update({ ...payload, status: 'submitted' }).eq('id', sub.id)
+        ? await sb.from('submissions').update(payload).eq('id', sub.id)
         : await sb.from('submissions').insert({ ...payload, challenge_id: c.id, student_id: me.id });
       if (err) throw err;
       if (removed.length) await sb.storage.from('evidence').remove(removed.map((r) => r.path));
-      await stampOverlay('CASE FILED', `“${c.title}” is on your teacher’s desk.`, `+${c.xp} XP when she closes the case`);
+      if (sub && sub.status !== 'try_again') toast(closed ? 'Changes saved. Your case is still closed.' : 'Changes saved.');
+      else await stampOverlay('CASE FILED', `“${c.title}” is on your teacher’s desk.`, `+${c.xp} XP when she closes the case`);
       location.hash = '#/portfolio';
     } catch (err) {
       if (uploaded.length) await sb.storage.from('evidence').remove(uploaded.map((u) => u.path));
@@ -2390,17 +2413,60 @@ async function studentPortfolio(studentId) {
                     ${s.feedback ? `<p class="memo fb"><b>${esc(s.reviewer_name || 'Your teacher')}:</b> ${esc(s.feedback)}</p>` : ''}
                   </div>
                 </div>
+                ${isT && s.student_edited_at ? `<p class="edited-flag">✎ ${esc(who.display_name)} edited this on ${fmtDate(s.student_edited_at)}, after it was closed.</p>` : ''}
+                ${!isT && !me.viewing ? `<div class="entry-actions"><a class="stamp-btn small ghost" href="#/case/${s.challenge_id}/edit">Edit</a>
+                  <button type="button" class="link-btn danger" data-del="${s.id}">Delete</button></div>` : ''}
               </article>`;
             }).join('')}`).join('')
             : `<section class="paper"><p>${isT ? 'She hasn’t filed any cases yet.' : 'Your case files appear here as you file them. <a href="#/map">Open the city map →</a>'}</p></section>`}
           <section class="exhibition"><b>◆ THRIVE Exhibition</b><span>Your best case files across the year become your Exhibition display.</span></section>
         </div>
       </div>`);
+    $$('[data-del]').forEach((b) => b.addEventListener('click', () => { const x = subs.find((y) => y.id === b.dataset.del); deleteEntry(x, x?.challenge); }));
     if (!isT && !me.viewing) {
       subs.forEach((s) => { if (s.reviewed_at) seen[s.id] = s.reviewed_at; });
       store(`l2l-fb-${me.id}`, seen);
     }
   } catch (e) { errorPage(isT ? 'class' : 'portfolio', e); }
+}
+
+// ---------- Delete an entry ----------------------------------------------------
+function confirmBox(title, text, okLabel) {
+  return new Promise((resolve) => {
+    overlay.innerHTML = `
+      <div class="stamp-dialog confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="cd-t" aria-describedby="cd-d">
+        <h2 id="cd-t">${esc(title)}</h2>
+        <p id="cd-d">${esc(text)}</p>
+        <div class="row-actions"><button class="stamp-btn danger-btn" id="cd-ok">${esc(okLabel)}</button>
+        <button class="stamp-btn ghost" id="cd-no">Keep it</button></div>
+      </div>`;
+    overlay.hidden = false;
+    $('#cd-no').focus();
+    const done = (v) => { overlay.hidden = true; overlay.innerHTML = ''; document.removeEventListener('keydown', esc1); resolve(v); };
+    const esc1 = (e) => { if (e.key === 'Escape') done(false); };
+    document.addEventListener('keydown', esc1);
+    $('#cd-ok').addEventListener('click', () => done(true));
+    $('#cd-no').addEventListener('click', () => done(false));
+  });
+}
+
+async function deleteEntry(sub, c) {
+  if (!sub || me.viewing) return;
+  const title = c?.title || sub.challenge?.title || 'this case';
+  const xp = (sub.xp_awarded || 0) + (sub.bonus || 0);
+  const lost = [
+    'your case notes', (sub.evidence || []).length ? 'your evidence' : '',
+    sub.feedback ? 'your teacher’s feedback' : '', sub.sticker ? 'the badge' : '', xp ? `${xp} XP` : '',
+  ].filter(Boolean);
+  const list = lost.length > 1 ? `${lost.slice(0, -1).join(', ')} and ${lost[lost.length - 1]}` : lost[0];
+  const ok = await confirmBox(`Delete “${title}”?`, `This removes ${list}. You can’t undo it, but you can file the case again from the city map.`, 'Delete it');
+  if (!ok) return;
+  const { error } = await sb.from('submissions').delete().eq('id', sub.id);
+  if (error) return toast(friendlyError(error), 'warn');
+  const paths = (sub.evidence || []).map((e) => e.path).filter(Boolean);
+  if (paths.length) await sb.storage.from('evidence').remove(paths);
+  toast('Entry deleted.');
+  if (location.hash === '#/portfolio') route(); else location.hash = '#/portfolio';
 }
 
 // ---------- Celebrations ------------------------------------------------------
