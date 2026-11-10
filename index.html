@@ -657,6 +657,15 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
 .viewer-arrow{flex:none;width:48px;height:72px;font-size:2.4rem;line-height:1;border:0;background:rgba(255,255,255,.15);color:#FFF;cursor:pointer;border-radius:6px}
 .viewer-arrow:hover{background:rgba(255,255,255,.3)}
 @media (max-width:600px){.viewer-arrow{position:absolute;bottom:20px;width:56px;height:56px}.viewer-arrow.prev{left:16px}.viewer-arrow.next{right:16px}}
+/* evidence polaroids: keep their own size, never stretch to the notes beside them */
+.evidence-board { align-items: flex-start; }
+.case-file .file-body { align-items: flex-start; }
+.case-file .file-body .evidence-board { flex: 0 0 auto; max-width: 100%; }
+.polaroid { width: 210px; align-self: flex-start; }
+.polaroid img, .polaroid .ev-doc { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; object-position: center top; background: #EDE6D8; }
+.polaroid[data-view]::after { content: "⤢ View"; position: absolute; right: 14px; top: 14px; font: 700 12px/1 var(--mono, 'Courier Prime', monospace); background: rgba(26,26,26,.78); color: #fff; padding: 5px 7px; opacity: .85; }
+.polaroid[data-view]:hover::after, .polaroid[data-view]:focus-visible::after { opacity: 1; background: #B3170F; }
+@media (max-width: 700px) { .polaroid { width: 46%; } .case-file .file-body .evidence-board { width: 100%; } }
 </style>
 </head>
 <body>
