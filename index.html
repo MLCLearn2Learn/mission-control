@@ -368,6 +368,75 @@ th { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: v
 }
 @keyframes fall { to { transform: translateY(110vh) rotate(var(--r)); } }
 
+/* ---------- Mission stages: do → upload → reflect ---------- */
+.small { font-size: 14px; }
+.stage { position: relative; transition: opacity .3s ease, border-color .3s ease; }
+.stage-head { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
+.stage-head h2 { margin: 0; }
+.stage-head p { margin: 2px 0 0; }
+.stage-num {
+  flex: none; width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center; font-family: var(--head); font-weight: 700; font-size: 22px;
+  background: var(--panel-2); border: 3px solid var(--purple); color: var(--text);
+  transition: background .3s ease, border-color .3s ease;
+}
+.stage.done { border-color: var(--green); }
+.stage.done .stage-num { background: var(--green); border-color: var(--green); color: var(--space); font-size: 0; }
+.stage.done .stage-num::after { content: '✓'; font-size: 24px; }
+.stage.locked .reflect-body { opacity: .35; pointer-events: none; filter: saturate(.4); }
+.stage:not(.locked) .lock-msg { display: none; }
+.stage.unlocking { animation: unlock .6s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes unlock { 40% { transform: scale(1.02); box-shadow: 0 0 40px rgba(58, 224, 232, .45); } }
+.stage-title { font-size: 16px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-top: 18px; }
+
+.steps { list-style: none; counter-reset: step; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.steps li { counter-increment: step; }
+.step {
+  display: flex; align-items: center; gap: 14px; margin: 0; cursor: pointer; font-weight: 700;
+  padding: 12px 14px; border-radius: 14px; background: var(--space-2); border: 2px solid var(--line);
+  min-height: 56px; transition: border-color .2s ease, background .2s ease;
+}
+.step input { width: 26px; height: 26px; min-height: 0; flex: none; accent-color: var(--green); }
+.step span::before { content: counter(step) '. '; color: var(--yellow); }
+.step:has(input:checked) { border-color: var(--green); background: rgba(75, 227, 138, .1); }
+.step:has(input:checked) span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--green); }
+.steps-read { margin: 8px 0 0; padding-left: 22px; }
+
+.dropzone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  margin: 12px 0 4px; padding: 26px 16px; min-height: 140px; text-align: center; cursor: pointer;
+  border: 3px dashed var(--cyan); border-radius: var(--radius); background: rgba(58, 224, 232, .06);
+  font-weight: 800; transition: background .2s ease, transform .15s ease;
+}
+.dropzone:hover, .dropzone.over { background: rgba(58, 224, 232, .16); transform: scale(1.01); }
+.dropzone.full { opacity: .4; pointer-events: none; }
+.dz-icon { font-size: 40px; line-height: 1; }
+#ev-input:focus-visible + .dropzone { box-shadow: 0 0 0 3px rgba(58, 224, 232, .5); }
+
+.evidence-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin: 12px 0; }
+.evidence-grid:empty { display: none; }
+.ev-item, .ev-thumb {
+  position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden;
+  background: var(--space-2); border: 2px solid var(--line); display: block;
+}
+.ev-item img, .ev-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ev-thumb:hover { border-color: var(--cyan); }
+.ev-item.pop { animation: pop .35s cubic-bezier(.2, 1.6, .4, 1) both; }
+.ev-doc { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 36px; padding: 8px; text-align: center; }
+.ev-doc small { font-size: 12px; font-weight: 700; word-break: break-word; line-height: 1.25; color: var(--muted); }
+.ev-x {
+  position: absolute; top: 6px; right: 6px; width: 34px; height: 34px; border-radius: 50%; border: 0; cursor: pointer;
+  background: rgba(13, 11, 43, .85); color: #fff; font-weight: 800; font-size: 15px;
+}
+.ev-x:hover { background: var(--pink); }
+.ev-file {
+  display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: 14px; min-height: 56px;
+  background: var(--space-2); border: 2px solid var(--line); font-weight: 700; font-size: 14px; word-break: break-word;
+  text-decoration: none; color: var(--text);
+}
+.ev-file span { font-size: 24px; flex: none; }
+a.ev-file:hover { border-color: var(--cyan); color: var(--text); }
+
 /* ---------- Motion & print ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -397,7 +466,7 @@ th { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: v
   <script type="module">
 // =====================================================================
 // MISSION CONTROL · Learn to Learn · Version 1
-// The whole website's logic. You shouldn't need to edit this.
+// The whole website's logic. You shouldn't need to edit this file.
 // =====================================================================
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.89.0/+esm';
@@ -426,6 +495,15 @@ const STICKERS = [
   { id: 'growth', label: 'Big growth', icon: '🌱' },
   { id: 'keep', label: 'Keep going', icon: '🚀' },
 ];
+const MAX_FILES = 3;
+const MAX_BYTES = 5 * 1024 * 1024;
+const FILE_TYPES = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif',
+  heic: 'image/heic', heif: 'image/heif', pdf: 'application/pdf',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+};
+const ACCEPT = 'image/*,.pdf,.docx,.pptx';
 const ELEMENT_SUGGESTIONS = [
   'Agency: Being systematic', 'Agency: Being reflective', 'Agency: Acting with autonomy',
   'Agency: Demonstrating drive', 'Agency: Acting with courage', 'Agency: Being persistent',
@@ -503,6 +581,61 @@ async function callFunction(body) {
     throw new Error(msg);
   }
   return data;
+}
+
+// ---------- Evidence files ---------------------------------------------
+const extOf = (name) => (String(name).split('.').pop() || '').toLowerCase();
+const mimeFor = (file) => FILE_TYPES[extOf(file.name)] || file.type || '';
+const showsAsImage = (type) => /^image\/(jpeg|png|webp|gif)$/.test(type || '');
+const fileIcon = (type) => (/pdf/.test(type) ? '📕' : /word/.test(type) ? '📘' : /presentation/.test(type) ? '📙' : /^image/.test(type) ? '🖼️' : '📄');
+
+// Photos are shrunk before upload so they load fast and save space
+async function shrinkImage(file) {
+  const type = mimeFor(file);
+  if (!/^image\/(jpeg|png|webp)$/.test(type)) return new File([file], file.name, { type });
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    if (scale === 1 && file.size < 400000) return new File([file], file.name, { type });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', 0.82));
+    if (!blob || blob.size >= file.size) return new File([file], file.name, { type });
+    return new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' });
+  } catch {
+    return new File([file], file.name, { type });
+  }
+}
+
+// Private files need a short-lived link to view
+async function signUrls(subs) {
+  const paths = subs.flatMap((s) => (s.evidence || []).map((e) => e.path)).filter(Boolean);
+  const out = {};
+  for (let i = 0; i < paths.length; i += 100) {
+    const { data, error } = await sb.storage.from('evidence').createSignedUrls(paths.slice(i, i + 100), 3600);
+    if (error) continue;
+    (data || []).forEach((d) => { if (d.signedUrl) out[d.path] = d.signedUrl; });
+  }
+  return out;
+}
+
+function evidenceHtml(list, urls, link) {
+  const items = (list || []).map((e) => {
+    const u = urls[e.path];
+    if (u && showsAsImage(e.type)) {
+      return `<a class="ev-thumb" href="${esc(u)}" target="_blank" rel="noopener noreferrer"><img src="${esc(u)}" alt="${esc(e.name)}" loading="lazy"></a>`;
+    }
+    return u
+      ? `<a class="ev-file" href="${esc(u)}" target="_blank" rel="noopener noreferrer"><span>${fileIcon(e.type)}</span>${esc(e.name)}</a>`
+      : `<span class="ev-file"><span>${fileIcon(e.type)}</span>${esc(e.name)}</span>`;
+  });
+  if (safeUrl(link)) items.push(`<a class="ev-file" href="${esc(link)}" target="_blank" rel="noopener noreferrer"><span>🔗</span>Open link ↗</a>`);
+  return items.length ? `<div class="evidence-grid">${items.join('')}</div>` : '';
 }
 
 // ---------- Start up --------------------------------------------------
@@ -674,6 +807,7 @@ async function studentBoard() {
         <div class="mc-top">${statusChip(s)}<span class="xp-pill">+${c.xp} XP</span></div>
         <h3>${esc(c.title)}</h3>
         ${c.element ? `<p class="element">${esc(c.element)}</p>` : ''}
+        ${c.steps?.length ? `<p class="muted small">${c.steps.length} step${c.steps.length === 1 ? '' : 's'} · upload · reflect</p>` : ''}
         <span class="go">${s?.status === 'try_again' ? 'Improve it →' : s ? 'View →' : 'Accept mission →'}</span>
       </a>`;
     };
@@ -704,26 +838,12 @@ async function studentMission(id) {
     if (!c) { location.hash = '#/board'; return; }
 
     const prompts = Array.isArray(c.prompts) && c.prompts.length ? c.prompts : DEFAULT_PROMPTS;
+    const steps = Array.isArray(c.steps) ? c.steps : [];
     const editable = !sub || sub.status === 'try_again';
     const answers = sub?.answers || [];
-
+    const urls = await signUrls(sub ? [sub] : []);
     const feedback = sub && (sub.feedback || sub.sticker) ? feedbackCard(sub) : '';
-    const body = editable ? `
-      <form id="mission-form" class="card">
-        ${prompts.map((p, i) => `
-          <label for="a${i}">${esc(p)}</label>
-          <textarea id="a${i}" rows="4" maxlength="2000" required>${esc(answers[i] || '')}</textarea>`).join('')}
-        <label for="link">Link to your evidence <span class="muted">(optional)</span></label>
-        <input id="link" type="url" placeholder="https://…" value="${esc(sub?.link || '')}">
-        <button class="btn primary big" type="submit">${sub ? 'Resubmit' : 'Submit'} for +${c.xp} XP</button>
-      </form>` : `
-      <section class="card">
-        ${prompts.map((p, i) => `<h3 class="q">${esc(p)}</h3><p class="a">${esc(answers[i] || '')}</p>`).join('')}
-        ${safeUrl(sub.link) ? `<p><a href="${esc(sub.link)}" target="_blank" rel="noopener noreferrer">Open my evidence ↗</a></p>` : ''}
-        <p class="muted">${sub.status === 'approved' ? 'Mission complete.' : 'Waiting for your teacher to read it.'}</p>
-      </section>`;
-
-    shell('board', `
+    const head = `
       <a class="back" href="#/board">← Missions</a>
       <section class="mission-head">
         <div class="mc-top">${statusChip(sub)}<span class="xp-pill">+${c.xp} XP</span></div>
@@ -731,32 +851,169 @@ async function studentMission(id) {
         ${c.element ? `<p class="element">${esc(c.element)}</p>` : ''}
         ${c.brief ? `<p class="brief">${esc(c.brief)}</p>` : ''}
       </section>
-      ${feedback}
-      ${body}`);
+      ${feedback}`;
 
-    if (!editable) return;
+    // ----- Already sent: show it read-only -----
+    if (!editable) {
+      shell('board', `${head}
+        <section class="card">
+          ${steps.length ? `<details><summary>Mission steps</summary><ol class="steps-read">${steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></details>` : ''}
+          <h2 class="stage-title">My evidence</h2>
+          ${evidenceHtml(sub.evidence, urls, sub.link) || '<p class="muted">No evidence attached.</p>'}
+          <h2 class="stage-title">My reflection</h2>
+          ${prompts.map((p, i) => `<h3 class="q">${esc(p)}</h3><p class="a">${esc(answers[i] || '')}</p>`).join('')}
+          <p class="muted">${sub.status === 'approved' ? 'Mission complete.' : 'Waiting for your teacher to read it.'}</p>
+        </section>`);
+      return;
+    }
+
+    // ----- Do it: steps → evidence → reflection -----
+    const stepKey = `l2l-steps-${me.id}-${c.id}`;
+    const ticked = new Set(store(stepKey) || []);
+    const kept = [...(sub?.evidence || [])];
+    const removed = [];
+    const pending = [];
+    let num = 0;
+    const submitLabel = `${sub ? 'Resubmit' : 'Launch it'} for +${c.xp} XP 🚀`;
+
+    shell('board', `${head}
+      <form id="mission-form" novalidate>
+        ${steps.length ? `
+        <section class="card stage" id="stage-steps">
+          <div class="stage-head"><span class="stage-num">${++num}</span>
+            <div><h2>Do the mission</h2><p class="muted" id="step-progress"></p></div></div>
+          <ol class="steps">${steps.map((s, i) => `<li><label class="step">
+            <input type="checkbox" data-step="${i}" ${ticked.has(i) ? 'checked' : ''}><span>${esc(s)}</span></label></li>`).join('')}</ol>
+        </section>` : ''}
+        <section class="card stage" id="stage-evidence">
+          <div class="stage-head"><span class="stage-num">${++num}</span>
+            <div><h2>Upload your evidence</h2><p class="muted">Photos, PDF, Word or PowerPoint · up to ${MAX_FILES} files</p></div></div>
+          <div class="evidence-grid" id="ev-grid"></div>
+          <input type="file" id="ev-input" class="sr" multiple accept="${ACCEPT}">
+          <label for="ev-input" class="dropzone" id="dropzone">
+            <span class="dz-icon" aria-hidden="true">📷</span><b>Add photos or files</b>
+            <span class="muted">Tap to choose, or drag them here</span></label>
+          <label for="link">Or add a link <span class="muted">(OneDrive, Canva, a website…)</span></label>
+          <input id="link" type="url" inputmode="url" placeholder="https://…" value="${esc(sub?.link || '')}">
+        </section>
+        <section class="card stage locked" id="stage-reflect">
+          <div class="stage-head"><span class="stage-num">${++num}</span>
+            <div><h2>Reflect on it</h2><p class="muted lock-msg">🔒 Add your evidence first to unlock this part.</p></div></div>
+          <div class="reflect-body">
+            ${prompts.map((p, i) => `
+              <label for="a${i}">${esc(p)}</label>
+              <textarea id="a${i}" rows="4" maxlength="2000">${esc(answers[i] || '')}</textarea>`).join('')}
+            <button class="btn primary big" type="submit" id="launch">${submitLabel}</button>
+          </div>
+        </section>
+      </form>`);
+
+    const grid = $('#ev-grid');
+    const linkInput = $('#link');
+    const hasEvidence = () => kept.length + pending.length > 0 || safeUrl(linkInput.value.trim());
+
+    function refresh() {
+      // steps progress
+      if (steps.length) {
+        const done = ticked.size;
+        $('#step-progress').textContent = done === steps.length ? `All ${steps.length} steps done ✓` : `${done} of ${steps.length} steps done`;
+        $('#stage-steps').classList.toggle('done', done === steps.length);
+      }
+      // evidence grid
+      grid.innerHTML = [
+        ...kept.map((e, i) => {
+          const u = urls[e.path];
+          const inner = u && showsAsImage(e.type) ? `<img src="${esc(u)}" alt="${esc(e.name)}">` : `<span class="ev-doc">${fileIcon(e.type)}<small>${esc(e.name)}</small></span>`;
+          return `<div class="ev-item">${inner}<button type="button" class="ev-x" data-kept="${i}" aria-label="Remove ${esc(e.name)}">✕</button></div>`;
+        }),
+        ...pending.map((p, i) => {
+          const inner = p.preview ? `<img src="${p.preview}" alt="${esc(p.file.name)}">` : `<span class="ev-doc">${fileIcon(mimeFor(p.file))}<small>${esc(p.file.name)}</small></span>`;
+          return `<div class="ev-item pop">${inner}<button type="button" class="ev-x" data-pending="${i}" aria-label="Remove ${esc(p.file.name)}">✕</button></div>`;
+        }),
+      ].join('');
+      const full = kept.length + pending.length >= MAX_FILES;
+      $('#dropzone').classList.toggle('full', full);
+      $('#ev-input').disabled = full;
+      const ok = !!hasEvidence();
+      $('#stage-evidence').classList.toggle('done', ok);
+      const wasLocked = $('#stage-reflect').classList.contains('locked');
+      $('#stage-reflect').classList.toggle('locked', !ok);
+      $$('#stage-reflect textarea, #launch').forEach((el) => { el.disabled = !ok; });
+      if (wasLocked && ok && !reduceMotion) $('#stage-reflect').classList.add('unlocking');
+    }
+
+    function addFiles(list) {
+      for (const file of list) {
+        if (kept.length + pending.length >= MAX_FILES) { toast(`Up to ${MAX_FILES} files per mission.`, 'warn'); break; }
+        if (!FILE_TYPES[extOf(file.name)]) { toast(`${file.name} isn’t a photo, PDF, Word or PowerPoint file.`, 'warn'); continue; }
+        const big = showsAsImage(mimeFor(file)) && mimeFor(file) !== 'image/gif' ? 25 * 1024 * 1024 : MAX_BYTES;
+        if (file.size > big) { toast(`${file.name} is too big (max 5 MB).`, 'warn'); continue; }
+        pending.push({ file, preview: showsAsImage(mimeFor(file)) ? URL.createObjectURL(file) : null });
+      }
+      refresh();
+    }
+
+    $$('[data-step]').forEach((cb) => cb.addEventListener('change', () => {
+      const i = Number(cb.dataset.step);
+      if (cb.checked) ticked.add(i); else ticked.delete(i);
+      store(stepKey, [...ticked]);
+      refresh();
+      if (cb.checked && ticked.size === steps.length) toast('All steps done! Now upload your evidence 📷');
+    }));
+    $('#ev-input').addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
+    const dz = $('#dropzone');
+    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+    dz.addEventListener('drop', (e) => { e.preventDefault(); dz.classList.remove('over'); addFiles(e.dataTransfer.files); });
+    grid.addEventListener('click', (e) => {
+      const b = e.target.closest('.ev-x');
+      if (!b) return;
+      if (b.dataset.kept !== undefined) removed.push(...kept.splice(Number(b.dataset.kept), 1));
+      else pending.splice(Number(b.dataset.pending), 1);
+      refresh();
+    });
+    linkInput.addEventListener('input', refresh);
+    refresh();
+
     $('#mission-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const btn = $('#mission-form button[type=submit]');
-      const vals = prompts.map((_, i) => $(`#a${i}`).value.trim());
-      if (vals.some((v) => v.length < 3)) return toast('Answer every question first.', 'warn');
-      const link = $('#link').value.trim();
+      const btn = $('#launch');
+      if (!hasEvidence()) return toast('Add your evidence first.', 'warn');
+      const link = linkInput.value.trim();
       if (link && !safeUrl(link)) return toast('Links need to start with https://', 'warn');
+      const vals = prompts.map((_, i) => $(`#a${i}`).value.trim());
+      if (vals.some((v) => v.length < 3)) return toast('Answer every reflection question first.', 'warn');
+
       btn.disabled = true;
-      btn.textContent = 'Launching…';
-      const before = me.xp;
-      const payload = { answers: vals, link: link || null };
-      const { error: err } = sub
-        ? await sb.from('submissions').update({ ...payload, status: 'submitted' }).eq('id', sub.id)
-        : await sb.from('submissions').insert({ ...payload, challenge_id: c.id, student_id: me.id });
-      if (err) {
+      const uploaded = [];
+      try {
+        for (const [i, p] of pending.entries()) {
+          btn.textContent = `Uploading ${i + 1} of ${pending.length}…`;
+          const f = await shrinkImage(p.file);
+          if (f.size > MAX_BYTES) throw new Error(`${p.file.name} is too big (max 5 MB).`);
+          const ext = extOf(f.name).replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
+          const path = `${me.id}/${c.id}/${crypto.randomUUID()}.${ext}`;
+          const { error: upErr } = await sb.storage.from('evidence').upload(path, f, { contentType: f.type });
+          if (upErr) throw upErr;
+          uploaded.push({ path, name: p.file.name.slice(0, 80), type: f.type, size: f.size });
+        }
+        btn.textContent = 'Launching…';
+        const before = me.xp;
+        const payload = { answers: vals, link: link || null, evidence: [...kept, ...uploaded] };
+        const { error: err } = sub
+          ? await sb.from('submissions').update({ ...payload, status: 'submitted' }).eq('id', sub.id)
+          : await sb.from('submissions').insert({ ...payload, challenge_id: c.id, student_id: me.id });
+        if (err) throw err;
+        if (removed.length) await sb.storage.from('evidence').remove(removed.map((r) => r.path));
+        await refreshMe();
+        await celebrate(c.xp, before, Math.max(me.xp, before + c.xp), `“${c.title}” launched!`);
+        location.hash = '#/portfolio';
+      } catch (err) {
+        if (uploaded.length) await sb.storage.from('evidence').remove(uploaded.map((u) => u.path));
         btn.disabled = false;
-        btn.textContent = `${sub ? 'Resubmit' : 'Submit'} for +${c.xp} XP`;
-        return toast(friendlyError(err), 'warn');
+        btn.textContent = submitLabel;
+        toast(friendlyError(err), 'warn');
       }
-      await refreshMe();
-      await celebrate(c.xp, before, Math.max(me.xp, before + c.xp), `“${c.title}” launched!`);
-      location.hash = '#/portfolio';
     });
   } catch (e) { errorPage('board', e); }
 }
@@ -776,6 +1033,7 @@ async function studentPortfolio() {
   try {
     await refreshMe();
     const subs = await loadMySubmissions();
+    const urls = await signUrls(subs);
     const complete = subs.filter((s) => s.status === 'approved').length;
     const stickers = subs.filter((s) => s.sticker).length;
     const seen = store(`l2l-fb-${me.id}`) || {};
@@ -802,9 +1060,9 @@ async function studentPortfolio() {
               <span class="muted">${fmtDate(s.created_at)} · +${s.xp_awarded + s.bonus} XP</span></div>
             <h3><a href="#/mission/${s.challenge_id}">${esc(s.challenge?.title || 'Mission')}</a></h3>
             ${s.challenge?.element ? `<p class="element">${esc(s.challenge.element)}</p>` : ''}
+            ${evidenceHtml(s.evidence, urls, s.link)}
             <details><summary>My reflection</summary>
               ${prompts.map((p, i) => `<h4 class="q">${esc(p)}</h4><p class="a">${esc(s.answers?.[i] || '')}</p>`).join('')}
-              ${safeUrl(s.link) ? `<p><a href="${esc(s.link)}" target="_blank" rel="noopener noreferrer">My evidence ↗</a></p>` : ''}
             </details>
             ${s.feedback || s.sticker ? feedbackCard(s) : ''}
           </article>
@@ -911,6 +1169,7 @@ async function teacherInbox() {
     });
     const list = subs.filter((s) => !filter || s.student?.mentor_group === filter);
     const shown = mode === 'submitted' ? list : list.slice(0, 100);
+    const urls = await signUrls(shown);
 
     shell('inbox', `
       <section class="hero row">
@@ -923,7 +1182,7 @@ async function teacherInbox() {
           </div>
         </div>
       </section>
-      <div class="inbox">${shown.map(reviewCard).join('') || '<section class="card center"><p>Nothing here. Inbox zero! 🎉</p></section>'}</div>
+      <div class="inbox">${shown.map((s) => reviewCard(s, urls)).join('') || '<section class="card center"><p>Nothing here. Inbox zero! 🎉</p></section>'}</div>
     `);
 
     $('#group-filter').addEventListener('change', (e) => { store('l2l-t-group', e.target.value); teacherInbox(); });
@@ -932,7 +1191,7 @@ async function teacherInbox() {
   } catch (e) { errorPage('inbox', e); }
 }
 
-function reviewCard(s) {
+function reviewCard(s, urls) {
   const prompts = s.challenge?.prompts || DEFAULT_PROMPTS;
   return `<article class="card review" data-id="${s.id}">
     <div class="review-head">
@@ -940,9 +1199,11 @@ function reviewCard(s) {
       <p class="element">${esc(s.challenge?.title)} · ${fmtDate(s.updated_at)}${s.status !== 'submitted' ? ` · ${s.status === 'approved' ? 'Approved' : 'Sent back'}` : ''}</p></div>
       <span class="xp-pill">+${s.xp_awarded} XP</span>
     </div>
+    <h4 class="stage-title">Evidence</h4>
+    ${evidenceHtml(s.evidence, urls, s.link) || '<p class="muted">No evidence attached.</p>'}
+    <h4 class="stage-title">Reflection</h4>
     <div class="answers">
       ${prompts.map((p, i) => `<h4 class="q">${esc(p)}</h4><p class="a">${esc(s.answers?.[i] || '')}</p>`).join('')}
-      ${safeUrl(s.link) ? `<p><a href="${esc(s.link)}" target="_blank" rel="noopener noreferrer">Open evidence ↗</a></p>` : ''}
     </div>
     <label for="fb-${s.id}">Feedback</label>
     <textarea id="fb-${s.id}" rows="3" maxlength="2000" placeholder="What did she do well? What's one next step?">${esc(s.feedback || '')}</textarea>
@@ -1004,6 +1265,8 @@ async function teacherChallenges(editId) {
           <datalist id="elements">${ELEMENT_SUGGESTIONS.map((e) => `<option value="${esc(e)}">`).join('')}</datalist>
           <label for="ch-xp">XP reward</label>
           <select id="ch-xp">${[25, 50, 75, 100, 150].map((x) => `<option ${x === (editing?.xp ?? 50) ? 'selected' : ''}>${x}</option>`).join('')}</select>
+          <label for="ch-steps">Mission steps <span class="muted">(what students do, one step per line)</span></label>
+          <textarea id="ch-steps" rows="5" placeholder="Choose one habit to trial&#10;Track your energy each morning for 5 days&#10;Take a photo of your tracker">${esc((editing?.steps || []).join('\n'))}</textarea>
           <label for="ch-prompts">Reflection questions <span class="muted">(one per line)</span></label>
           <textarea id="ch-prompts" rows="5">${esc(prompts.join('\n'))}</textarea>
           <div class="actions">
@@ -1017,7 +1280,7 @@ async function teacherChallenges(editId) {
               <div class="mc-top"><span class="chip ${c.active ? 'done' : 'wait'}">${c.active ? 'Open' : 'Hidden'}</span><span class="xp-pill">+${c.xp} XP</span></div>
               <h3>${esc(c.title)}</h3>
               ${c.element ? `<p class="element">${esc(c.element)}</p>` : ''}
-              <p class="muted">${counts[c.id] || 0} submission${counts[c.id] === 1 ? '' : 's'}</p>
+              <p class="muted">${c.steps?.length || 0} steps · ${counts[c.id] || 0} submission${counts[c.id] === 1 ? '' : 's'}</p>
               <div class="actions">
                 <a class="btn small" href="#/challenges/${c.id}">Edit</a>
                 <button class="btn small ghost" data-toggle="${c.id}" data-active="${c.active}">${c.active ? 'Hide' : 'Open'}</button>
@@ -1034,6 +1297,7 @@ async function teacherChallenges(editId) {
         element: $('#ch-element').value.trim() || null,
         xp: Number($('#ch-xp').value),
         prompts: $('#ch-prompts').value.split('\n').map((p) => p.trim()).filter(Boolean).slice(0, 8),
+        steps: $('#ch-steps').value.split('\n').map((p) => p.trim().slice(0, 300)).filter(Boolean).slice(0, 12),
       };
       if (!row.prompts.length) row.prompts = DEFAULT_PROMPTS;
       const { error } = editing
