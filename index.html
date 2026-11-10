@@ -641,6 +641,9 @@ textarea.is-draft{background:#F7F9FF;border-style:dashed}
 .file-list li{display:flex;align-items:center;gap:10px;background:#FBFAF6;border:1px solid #CFC6B3;padding:6px 10px}
 .file-list li b{flex:1}
 [hidden]{display:none !important}
+
+.folio-nav{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 16px}
+.folio-step{margin-left:auto;display:flex;gap:8px}
 </style>
 </head>
 <body>
@@ -871,7 +874,7 @@ function route() {
   if (me.role === 'teacher') {
     const views = {
       review: teacherReview, cases: teacherCases, edit: caseBuilder, present: presentMode,
-      case: studentCase, class: teacherClass, crews: teacherCrews, teachers: teacherTeachers,
+      case: studentCase, class: teacherClass, crews: teacherCrews, portfolio: studentPortfolio, teachers: teacherTeachers,
     };
     (views[view] || teacherReview)(id, extra);
   } else {
@@ -1641,10 +1644,10 @@ async function refreshMe() {
   if (data) me = data;
 }
 
-async function loadMySubmissions() {
+async function loadMySubmissions(studentId = me.id) {
   const { data, error } = await sb.from('submissions')
     .select('*, challenge:challenges(id, title, element, prompts, xp, week, district, location, closed_msg, reopen_msg, boss)')
-    .eq('student_id', me.id)
+    .eq('student_id', studentId)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data;
@@ -2077,43 +2080,57 @@ function verdictCard(sub, c) {
 }
 
 // ---------- Portfolio ---------------------------------------------------------
-async function studentPortfolio() {
-  loadingPage('portfolio');
+async function studentPortfolio(studentId) {
+  const isT = me.role === 'teacher';
+  if (isT && !studentId) { location.hash = '#/class'; return; }
+  loadingPage(isT ? 'class' : 'portfolio');
   try {
-    await refreshMe();
-    const subs = await loadMySubmissions();
+    let who = me;
+    let nav = '';
+    if (isT) {
+      const students = await loadStudents();
+      who = students.find((x) => x.id === studentId);
+      if (!who) { location.hash = '#/class'; return; }
+      const mates = students.filter((x) => x.mentor_group === who.mentor_group);
+      const i = mates.findIndex((x) => x.id === who.id);
+      const prev = mates[i - 1]; const next = mates[i + 1];
+      nav = `<div class="folio-nav"><a class="back" href="#/class">← Class</a>
+        <span class="muted">Viewing ${esc(who.display_name)}’s portfolio, exactly as she sees it${who.mentor_group ? ` · ${esc(who.mentor_group)}` : ''}</span>
+        <span class="folio-step">${prev ? `<a class="stamp-btn small ghost" href="#/portfolio/${prev.id}">← ${esc(prev.display_name)}</a>` : ''}${next ? `<a class="stamp-btn small ghost" href="#/portfolio/${next.id}">${esc(next.display_name)} →</a>` : ''}</span></div>`;
+    } else await refreshMe();
+    const subs = await loadMySubmissions(who.id);
     const urls = await signUrls(subs);
     const badges = subs.filter((s) => s.sticker).map((s) => stickerOf(s.sticker)).filter(Boolean);
     const closed = subs.filter((s) => s.status === 'approved').length;
-    const seen = store(`l2l-fb-${me.id}`) || {};
+    const seen = isT ? {} : (store(`l2l-fb-${me.id}`) || {});
     const groups = DISTRICTS.map((d) => ({ d, items: subs.filter((s) => (s.challenge?.district || 1) === d.n).sort((a, b) => byWeek(a.challenge || {}, b.challenge || {})) })).filter((g) => g.items.length);
 
-    shell('portfolio', `
+    shell(isT ? 'class' : 'portfolio', `${nav}
       <div class="folio">
         <aside class="paper dossier pinned">
           <p class="eyebrow">DETECTIVE DOSSIER</p>
-          <h1>${esc(me.display_name)}</h1>
-          <p class="dossier-rank">${esc(rankOf(me.xp))}${me.mentor_group ? ` · ${esc(me.mentor_group)}` : ''}</p>
-          <div class="xp-box"><div><b>${me.xp} XP</b><span>Level ${levelOf(me.xp)}</span></div>
-            <span class="hud-bar big"><i style="width:${intoLevel(me.xp)}%"></i></span>
-            <small>${XP_PER_LEVEL - intoLevel(me.xp)} XP to level ${levelOf(me.xp) + 1}</small></div>
+          <h1>${esc(who.display_name)}</h1>
+          <p class="dossier-rank">${esc(rankOf(who.xp))}${who.mentor_group ? ` · ${esc(who.mentor_group)}` : ''}</p>
+          <div class="xp-box"><div><b>${who.xp} XP</b><span>Level ${levelOf(who.xp)}</span></div>
+            <span class="hud-bar big"><i style="width:${intoLevel(who.xp)}%"></i></span>
+            <small>${XP_PER_LEVEL - intoLevel(who.xp)} XP to level ${levelOf(who.xp) + 1}</small></div>
           <p class="eyebrow ink">CASE RECORD</p>
           <p class="record"><b>${subs.length}</b> filed · <b>${closed}</b> closed</p>
           <p class="eyebrow ink">BADGES</p>
-          <div class="badges">${badges.length ? badges.map((b) => `<span class="badge" title="${esc(b.label)}">${graphicSvg(b.g)}<small>${esc(b.label)}</small></span>`).join('') : '<p class="muted small">Your teacher awards badges when she closes your cases.</p>'}</div>
+          <div class="badges">${badges.length ? badges.map((b) => `<span class="badge" title="${esc(b.label)}">${graphicSvg(b.g)}<small>${esc(b.label)}</small></span>`).join('') : `<p class="muted small">${isT ? 'No badges yet.' : 'Your teacher awards badges when she closes your cases.'}</p>`}</div>
         </aside>
         <div class="files">
-          <h1 class="files-title">My case files</h1>
+          <h1 class="files-title">${isT ? `${esc(who.display_name)}’s case files` : 'My case files'}</h1>
           ${groups.length ? groups.map(({ d, items }) => `
             <h2 class="district-label" style="--dc:${d.col}">District ${d.n} · ${esc(d.name)}</h2>
             ${items.map((s, i) => {
               const c = s.challenge || {};
               const st = caseState(s);
-              const isNew = s.reviewed_at && seen[s.id] !== s.reviewed_at;
+              const isNew = !isT && s.reviewed_at && seen[s.id] !== s.reviewed_at;
               const prompts = c.prompts || DEFAULT_PROMPTS;
               return `<article class="paper case-file" style="--t:${i % 2 ? 0.4 : -0.4}deg">
                 <span class="stamp-mark ${st}">${STATE_LABEL[st]}</span>
-                <p class="eyebrow">CASE #${pad2(c.week || 0)} · ${fmtDate(s.created_at)}${isNew ? ' · <span class="hot">NEW FEEDBACK</span>' : ''}</p>
+                <p class="eyebrow">CASE #${pad2(c.week || 0)} · ${fmtDate(s.created_at)}${isNew ? ' · <span class="hot">NEW FEEDBACK</span>' : ''}${isT && s.status === 'submitted' ? ' · <a href="#/review">waiting for review</a>' : ''}</p>
                 <h3><a href="#/case/${s.challenge_id}">${esc(c.title || 'Case')}</a></h3>
                 <div class="file-body">
                   ${evidenceHtml(s.evidence, urls, s.link)}
@@ -2125,13 +2142,15 @@ async function studentPortfolio() {
                 </div>
               </article>`;
             }).join('')}`).join('')
-            : '<section class="paper"><p>Your case files appear here as you file them. <a href="#/map">Open the city map →</a></p></section>'}
+            : `<section class="paper"><p>${isT ? 'She hasn’t filed any cases yet.' : 'Your case files appear here as you file them. <a href="#/map">Open the city map →</a>'}</p></section>`}
           <section class="exhibition"><b>◆ THRIVE Exhibition</b><span>Your best case files across the year become your Exhibition display.</span></section>
         </div>
       </div>`);
-    subs.forEach((s) => { if (s.reviewed_at) seen[s.id] = s.reviewed_at; });
-    store(`l2l-fb-${me.id}`, seen);
-  } catch (e) { errorPage('portfolio', e); }
+    if (!isT) {
+      subs.forEach((s) => { if (s.reviewed_at) seen[s.id] = s.reviewed_at; });
+      store(`l2l-fb-${me.id}`, seen);
+    }
+  } catch (e) { errorPage(isT ? 'class' : 'portfolio', e); }
 }
 
 // ---------- Celebrations ------------------------------------------------------
@@ -2232,7 +2251,7 @@ function reviewCard(s, urls, draft) {
   return `<article class="paper review" data-id="${s.id}">
     <div class="review-head">
       <div><p class="eyebrow">CASE #${pad2(s.challenge?.week || 0)} · ${esc(s.challenge?.title)} · ${fmtDate(s.updated_at)}</p>
-      <h2>${esc(s.student?.display_name)} <span class="muted small">· ${esc(s.student?.mentor_group || 'No group')}</span></h2></div>
+      <h2><a href="#/portfolio/${s.student_id}" title="Open her portfolio">${esc(s.student?.display_name)}</a> <span class="muted small">· ${esc(s.student?.mentor_group || 'No group')}</span></h2></div>
       ${s.status !== 'submitted' ? `<span class="stamp-mark ${s.status === 'approved' ? 'closed' : 'reopened'}">${s.status === 'approved' ? 'CASE CLOSED' : 'REOPENED'}</span>` : `<span class="xp-chip">+${s.xp_awarded} XP</span>`}
     </div>
     <p class="eyebrow ink">EVIDENCE</p>
@@ -3031,10 +3050,10 @@ async function teacherClass() {
         <div class="table-wrap"><table>
           <thead><tr><th>Name</th><th>Username</th><th>Group</th><th>Rank</th><th>XP</th><th>Cases</th><th><span class="sr">Actions</span></th></tr></thead>
           <tbody>${list.map((s) => `<tr>
-            <td><b>${esc(s.display_name)}</b></td><td><code>${esc(s.username)}</code></td><td>${esc(s.mentor_group || '–')}</td>
+            <td><a href="#/portfolio/${s.id}"><b>${esc(s.display_name)}</b></a></td><td><code>${esc(s.username)}</code></td><td>${esc(s.mentor_group || '–')}</td>
             <td>${esc(rankOf(s.xp))} · L${levelOf(s.xp)}</td><td>${s.xp}</td>
             <td>${stats[s.id]?.closed || 0} closed${stats[s.id]?.waiting ? ` <span class="chip warn">${stats[s.id].waiting} waiting</span>` : ''}</td>
-            <td><button class="link-btn" data-reset="${s.id}" data-name="${esc(s.display_name)}">New password</button></td>
+            <td><a class="stamp-btn small ghost" href="#/portfolio/${s.id}">View portfolio</a> <button class="link-btn" data-reset="${s.id}" data-name="${esc(s.display_name)}">New password</button></td>
           </tr>`).join('') || '<tr><td colspan="7" class="center muted">No students yet. Add some below.</td></tr>'}</tbody>
         </table></div>
       </section>
