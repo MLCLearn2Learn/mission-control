@@ -554,6 +554,10 @@ button.s-opt:hover { background: var(--memo); }
   .paper { box-shadow: none; }
   .login-card { break-inside: avoid; }
 }
+
+/* AI feedback drafts (teacher only) */
+.draft-note{margin:4px 0 6px;padding:8px 12px;background:#EEF3FF;border-left:4px solid #4A63B8;font-size:.9rem;line-height:1.4}
+textarea.is-draft{background:#F7F9FF;border-style:dashed}
 </style>
 </head>
 <body>
@@ -1531,7 +1535,7 @@ function verdictCard(sub, c) {
   return `<section class="verdict ${sub.status}">
     ${closed ? '<span class="stamp-mark closed">CASE CLOSED</span>' : reopened ? '<span class="stamp-mark reopened">REOPENED</span>' : ''}
     ${msg ? `<p class="verdict-msg">${esc(msg)}</p>` : ''}
-    ${sub.feedback ? `<p class="verdict-fb"><b>Your teacher:</b> ${esc(sub.feedback)}</p>` : ''}
+    ${sub.feedback ? `<p class="verdict-fb"><b>${esc(sub.reviewer_name || 'Your teacher')}:</b> ${esc(sub.feedback)}</p>` : ''}
     ${st ? `<p class="badge-line">${graphicSvg(st.g, 'badge-ic')}<b>${esc(st.label)}</b> badge</p>` : ''}
     ${sub.bonus ? `<p class="bonus">+${sub.bonus} bonus XP for strong case notes</p>` : ''}
   </section>`;
@@ -1581,7 +1585,7 @@ async function studentPortfolio() {
                   <div class="file-notes">
                     ${prompts.slice(0, 2).map((p, k) => `<p class="q small">${esc(p)}</p><p class="a">${esc(s.answers?.[k] || '')}</p>`).join('')}
                     ${prompts.length > 2 ? `<details><summary>All case notes</summary>${prompts.slice(2).map((p, k) => `<p class="q small">${esc(p)}</p><p class="a">${esc(s.answers?.[k + 2] || '')}</p>`).join('')}</details>` : ''}
-                    ${s.feedback ? `<p class="memo fb"><b>Your teacher:</b> ${esc(s.feedback)}</p>` : ''}
+                    ${s.feedback ? `<p class="memo fb"><b>${esc(s.reviewer_name || 'Your teacher')}:</b> ${esc(s.feedback)}</p>` : ''}
                   </div>
                 </div>
               </article>`;
@@ -1659,6 +1663,11 @@ async function teacherReview() {
     const list = subs.filter((s) => !filter || s.student?.mentor_group === filter);
     const shown = mode === 'submitted' ? list : list.slice(0, 100);
     const urls = await signUrls(shown);
+    const drafts = {};
+    if (shown.length) {
+      const { data: dr } = await sb.from('feedback_drafts').select('submission_id, draft, drafted_for');
+      (dr || []).forEach((d) => { drafts[d.submission_id] = d; });
+    }
     const waiting = mode === 'submitted' ? list.length : await waitingCount();
 
     shell('review', `
@@ -1673,7 +1682,7 @@ async function teacherReview() {
           </div>
         </div>
       </section>
-      <div class="inbox">${shown.map((s) => reviewCard(s, urls)).join('') || '<section class="paper center"><p class="big-stamp-inline">DESK CLEAR</p><p>Nothing waiting. Nice work.</p></section>'}</div>
+      <div class="inbox">${shown.map((s) => reviewCard(s, urls, drafts[s.id])).join('') || '<section class="paper center"><p class="big-stamp-inline">DESK CLEAR</p><p>Nothing waiting. Nice work.</p></section>'}</div>
     `, { waiting });
     $('#group-filter').addEventListener('change', (e) => { store('l2l-t-group', e.target.value); teacherReview(); });
     $$('.seg button').forEach((b) => b.addEventListener('click', () => { store('l2l-t-mode', b.dataset.mode); teacherReview(); }));
@@ -1681,8 +1690,10 @@ async function teacherReview() {
   } catch (e) { errorPage('review', e); }
 }
 
-function reviewCard(s, urls) {
+function reviewCard(s, urls, draft) {
   const prompts = s.challenge?.prompts || DEFAULT_PROMPTS;
+  const useDraft = draft && !s.feedback && s.status === 'submitted';
+  const stale = useDraft && new Date(s.updated_at) > new Date(draft.drafted_for);
   return `<article class="paper review" data-id="${s.id}">
     <div class="review-head">
       <div><p class="eyebrow">CASE #${pad2(s.challenge?.week || 0)} · ${esc(s.challenge?.title)} · ${fmtDate(s.updated_at)}</p>
@@ -1693,8 +1704,9 @@ function reviewCard(s, urls) {
     ${evidenceHtml(s.evidence, urls, s.link) || '<p class="muted">No evidence attached.</p>'}
     <p class="eyebrow ink">CASE NOTES</p>
     <div class="answers">${prompts.map((p, i) => `<p class="q">${esc(p)}</p><p class="a">${esc(s.answers?.[i] || '')}</p>`).join('')}</div>
-    <label for="fb-${s.id}">Your feedback</label>
-    <textarea id="fb-${s.id}" rows="3" maxlength="2000" placeholder="What did she do well? What’s one next step?">${esc(s.feedback || '')}</textarea>
+    <label for="fb-${s.id}">Your feedback <span class="muted small">· she’ll see it from ${esc(me.display_name || 'you')}</span></label>
+    ${useDraft ? `<p class="draft-note">✦ Draft written by Claude (AI). Read it, change anything that doesn’t sound like you, then send.${stale ? ' <b>She has edited her case notes since this draft was written.</b>' : ''}</p>` : ''}
+    <textarea id="fb-${s.id}" class="${useDraft ? 'is-draft' : ''}" rows="${useDraft ? 4 : 3}" maxlength="2000" placeholder="What did she do well? What’s one next step?">${esc(s.feedback || (useDraft ? draft.draft : ''))}</textarea>
     <fieldset class="badge-pick"><legend>Award a badge <span class="muted">(optional)</span></legend>
       ${STICKERS.map((st) => `<label><input type="radio" name="st-${s.id}" value="${st.id}" ${s.sticker === st.id ? 'checked' : ''}><span>${graphicSvg(st.g)}${esc(st.label)}</span></label>`).join('')}
       <label><input type="radio" name="st-${s.id}" value="" ${!s.sticker ? 'checked' : ''}><span>None</span></label>
@@ -1722,6 +1734,7 @@ function wireReview(card) {
       reviewed_by: me.id, reviewed_at: new Date().toISOString(),
     }).eq('id', id);
     if (error) { btn.disabled = false; return toast(friendlyError(error), 'warn'); }
+    sb.from('feedback_drafts').delete().eq('submission_id', id).then(() => {});
     toast(status === 'approved' ? 'Case closed' : 'Case reopened for another go');
     card.classList.add('leaving');
     setTimeout(() => card.remove(), reduceMotion ? 0 : 400);
